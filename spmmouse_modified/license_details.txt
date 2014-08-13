@@ -1,0 +1,15 @@
+
+The function spmmouse.m is a modification of the SPMMouse main function. It has been modified not to prompt 
+the user in case of error so that in can work in batch.
+
+spm_jobman.m inside the "replaced" folder is a modified version of SPM8 spm_jobman. These modifications
+allow its use with SPM8.
+
+
+
+
+================================================================================================
+SPMMOUSE: http://www.spmmouse.org/
+================================================================================================
+The toolbox is open source and freely-available in a similar license to the SPM software itself.
+Please email sjs80@wbic.cam.ac.uk for credentials to use spmmouse file.
