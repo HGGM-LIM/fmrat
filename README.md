@@ -18,4 +18,7 @@
 	Just add the fMRat folder to the Matlab path and use it. Execute "fMRat" in the Matlab command line to start the tool.
 	
 4.	READ MANUAL, SPECIALLY "BEFORE YOU START" SECTION.	
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/master
