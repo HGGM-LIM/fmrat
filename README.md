@@ -17,5 +17,5 @@
 3.	INSTALLATION AND LAUNCH
 	Just add the fMRat folder to the Matlab path and use it. Execute "fMRat" in the Matlab command line to start the tool.
 	
-4.	READ MANUAL, SPECIALLY "BEFORE YOU START" SECTION.	
+4.	READ [MANUAL] (https://github.com/HGGM-LIM/fmrat/blob/master/doc/fMRat_Manual.pdf?raw=true), SPECIALLY "BEFORE YOU START" SECTION.	
 
