@@ -214,7 +214,7 @@ end
 ok= ['isdir(sel_dir) && (block_ok==1) && ' ...
     '((coreg && (sp~=0))|| (coreg && (~isempty(atlas_dir))) || (~coreg))' ...
     '&& ((custom_resol==0)||((~isempty(rx))&&(~isempty(ry))&&(~isempty(rz))))'...
-    '&& ((sm==0)|| (~isnan(sx))) && exist(''data_struct'',''var'')'];
+    '&& ((sm==0)|| (~isnan(sx))) && exist(''data_struct'',''var'') && ~isempty(TR)'];
 if eval(ok)        
     set(handles.uipanel12,'BackgroundColor',[0.906,0.906,0.906]);
     set(handles.uipanel13,'BackgroundColor',[0.906,0.906,0.906]); 
@@ -281,6 +281,10 @@ else
     elseif ~isfield(handles,'studies') ||  ~isfield(handles,'data_struct')
         set(handles.text41,'String','WRONG','BackgroundColor', [0.847,0.161,0]); 
         errordlg('Please select your fMRI directory again and fill the Images structure through the Nifti Selector Window');
+    elseif isempty(TR) 
+        set(handles.edit32,'BackgroundColor',[0.847,0.161,0]);
+        set(hObject,'Value',0);  
+        errordlg('Please fill in a valid number for TR in miliseconds');           
     end
 end
 

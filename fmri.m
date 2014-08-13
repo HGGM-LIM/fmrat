@@ -220,7 +220,7 @@ addpath(genpath(install),'-0');
 addpath(genpath(spmpath),'-0'); 
 
 spm('FMRI'); pause(3);
-
+cputime
 
 
   

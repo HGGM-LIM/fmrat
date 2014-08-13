@@ -277,10 +277,10 @@ elseif (~preprocess && ~realign && ~design && ~estimate && display)
 end    
 rois_dir    =   get(handles.edit26,'String');    
 preserve    =   get(handles.checkbox14,'Value');    
-block_ok =      get(handles.edit4,'UserData');
-NR =            str2num(get(handles.edit4,'String'));
+block_ok =      get(handles.edit31,'UserData');
+NR =            str2num(get(handles.edit31,'String'));
 Nrest =         str2num(get(handles.edit2,'String'));
-Nstim =         str2num(get(handles.edit31,'String'));
+Nstim =         str2num(get(handles.edit4,'String'));
 anat_seq =      get(handles.edit29,'String');
 func_seq =      get(handles.edit30,'String');
 fwe=            get(handles.radiobutton19,'Value');
@@ -298,7 +298,7 @@ end
 ok= ['isdir(sel_dir) && (block_ok==1) && ' ...
     '((coreg && (sp~=0))|| (coreg && (~isempty(atlas_dir))) || (~coreg))' ...
     '&& ((custom_resol==0)||((~isempty(rx))&&(~isempty(ry))&&(~isempty(rz))))'...
-    '&& ((sm==0)|| (~isnan(sx)))'];
+    '&& ((sm==0)|| (~isnan(sx))) && ~isempty(TR) && ~isempty(anat_seq) && ~isempty(func_seq)'];
 if eval(ok)        
     set(handles.uipanel4,'BackgroundColor',[0.906,0.906,0.906]);
     set(handles.uipanel8,'BackgroundColor',[0.906,0.906,0.906]);
@@ -345,6 +345,14 @@ else
         set(handles.text14,'BackgroundColor',[0.847,0.161,0]);
         set(hObject,'Value',0);  
         errordlg('Smoothing resolution is not valid');
+    elseif isempty(TR) 
+        set(handles.edit32,'BackgroundColor',[0.847,0.161,0]);
+        set(hObject,'Value',0);  
+        errordlg('Please fill in a valid number for TR in miliseconds'); 
+    elseif isempty(anat_seq) || isempty(func_seq)
+        set(handles.uipane21,'BackgroundColor',[0.847,0.161,0]);
+        set(hObject,'Value',0);  
+        errordlg('Please fill in the Bruker acquisition methods for the anatomic and functional acquisitions');         
     end
 end
  
@@ -391,10 +399,10 @@ function edit2_Callback(hObject, eventdata, handles)
 
 % NREST BUTTON
 try
-    NR = str2num(get(handles.edit4,'String'));
+    NR = str2num(get(handles.edit31,'String'));
     Nrest=str2num(get(handles.edit2,'String'));
-    Nstim=str2num(get(handles.edit31,'String'));
-    set(handles.edit4,'UserData',[0]);
+    Nstim=str2num(get(handles.edit4,'String'));
+    set(handles.edit31,'UserData',[0]);
     if ~isempty(NR) && ~isempty(Nrest) && ~isempty(Nstim) && ...
        NR>(Nrest+Nstim) && (mod(NR,(Nrest+Nstim)) == Nrest)
             cycles=(NR-Nrest)/(Nrest+Nstim);
@@ -414,20 +422,20 @@ try
             set(gca,'XTickLabel',lb');
             xlim(handles.axes1,[1 NR*1000]);
             ylim(handles.axes1,[0 1.25]); 
-            set(handles.edit4,'UserData',[1]);
+            set(handles.edit31,'UserData',[1]);
             set(handles.uipanel8,'BackgroundColor',[0.906,0.906,0.906]);
             set(handles.text7,'BackgroundColor',[0.9,0.7,0.7]);              
     else
         axes(handles.axes1); 
         cla;
-        set(handles.edit4,'UserData',[0]);    
+        set(handles.edit31,'UserData',[0]);    
         set(handles.uipanel8,'BackgroundColor',[0.847,0.161,0]);
         set(handles.text7,'BackgroundColor',[0.847,0.161,0]);          
     end
 catch
         axes(handles.axes1); 
         cla;
-        set(handles.edit4,'UserData',[0]);    
+        set(handles.edit31,'UserData',[0]);    
         set(handles.uipanel8,'BackgroundColor',[0.847,0.161,0]);
 end
     % Hints: get(hObject,'String') returns contents of edit2 as text
@@ -447,17 +455,17 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
  
 
-function edit31_Callback(hObject, eventdata, handles)
-% hObject    handle to edit3 (see GCBO)
+function edit4_Callback(hObject, eventdata, handles)
+% hObject    handle to edit4 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
 % NSTIM BUTTON
 try
-    NR = str2num(get(handles.edit4,'String'));
+    NR = str2num(get(handles.edit31,'String'));
     Nrest=str2num(get(handles.edit2,'String'));
-    Nstim=str2num(get(handles.edit3,'String'));
-    set(handles.edit4,'UserData',[0]);
+    Nstim=str2num(get(handles.edit4,'String'));
+    set(handles.edit31,'UserData',[0]);
     if ~isempty(NR) && ~isempty(Nrest) && ~isempty(Nstim) && ...
        NR>(Nrest+Nstim) && (mod(NR,(Nrest+Nstim)) == Nrest)
             cycles=(NR-Nrest)/(Nrest+Nstim);
@@ -477,20 +485,20 @@ try
             set(gca,'XTickLabel',lb');
             xlim(handles.axes1,[1 NR*1000]);
             ylim(handles.axes1,[0 1.25]); 
-            set(handles.edit4,'UserData',[1]);
+            set(handles.edit31,'UserData',[1]);
             set(handles.uipanel8,'BackgroundColor',[0.906,0.906,0.906]);
             set(handles.text7,'BackgroundColor',[0.9,0.7,0.7]);                
     else
         axes(handles.axes1); 
         cla;
-        set(handles.edit4,'UserData',[0]);    
+        set(handles.edit31,'UserData',[0]);    
         set(handles.uipanel8,'BackgroundColor',[0.847,0.161,0]);
         set(handles.text7,'BackgroundColor',[0.847,0.161,0]);            
     end
 catch
         axes(handles.axes1); 
         cla;
-        set(handles.edit4,'UserData',[0]);    
+        set(handles.edit31,'UserData',[0]);    
         set(handles.uipanel8,'BackgroundColor',[0.847,0.161,0]);            
 end
  
@@ -512,20 +520,20 @@ end
  
 
 
-function edit4_Callback(hObject, eventdata, handles)
-% hObject    handle to edit4 (see GCBO)
+function edit31_Callback(hObject, eventdata, handles)
+% hObject    handle to edit31 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of edit4 as text
-%        str2double(get(hObject,'String')) returns contents of edit4 as a double
+% Hints: get(hObject,'String') returns contents of edit31 as text
+%        str2double(get(hObject,'String')) returns contents of edit31 as a double
 
 % NR_TOTAL BUTTON
 try
-    NR = str2num(get(handles.edit4,'String'));
+    NR = str2num(get(handles.edit31,'String'));
     Nrest=str2num(get(handles.edit2,'String'));
-    Nstim=str2num(get(handles.edit31,'String'));
-    set(handles.edit4,'UserData',[0]);
+    Nstim=str2num(get(handles.edit4,'String'));
+    set(handles.edit31,'UserData',[0]);
     if ~isempty(NR) && ~isempty(Nrest) && ~isempty(Nstim) && ...
        NR>(Nrest+Nstim) && (mod(NR,(Nrest+Nstim)) == Nrest)
             cycles=(NR-Nrest)/(Nrest+Nstim);
@@ -545,20 +553,20 @@ try
             set(gca,'XTickLabel',lb');
             xlim(handles.axes1,[1 NR*1000]);
             ylim(handles.axes1,[0 1.25]); 
-            set(handles.edit4,'UserData',[1]);
+            set(handles.edit31,'UserData',[1]);
             set(handles.uipanel8,'BackgroundColor',[0.906,0.906,0.906]);
             set(handles.text7,'BackgroundColor',[0.9,0.7,0.7]);             
     else
         axes(handles.axes1); 
         cla;
-        set(handles.edit4,'UserData',[0]);    
+        set(handles.edit31,'UserData',[0]);    
         set(handles.uipanel8,'BackgroundColor',[0.847,0.161,0]);
         set(handles.text7,'BackgroundColor',[0.847,0.161,0]);
     end
 catch
         axes(handles.axes1); 
         cla;
-        set(handles.edit4,'UserData',[0]);    
+        set(handles.edit31,'UserData',[0]);    
         set(handles.uipanel8,'BackgroundColor',[0.847,0.161,0]);    
 end
 
@@ -619,10 +627,10 @@ rea         =   get(handles.checkbox9,'Value');
 des         =   get(handles.checkbox10,'Value');
 tim         =   get(handles.checkbox13,'Value');
 dis         =   get(handles.checkbox12,'Value');  
-block_ok =      get(handles.edit4,'UserData');
-NR =            str2num(get(handles.edit4,'String'));
+block_ok =      get(handles.edit31,'UserData');
+NR =            str2num(get(handles.edit31,'String'));
 Nrest =         str2num(get(handles.edit2,'String'));
-Nstim =         str2num(get(handles.edit31,'String'));
+Nstim =         str2num(get(handles.edit4,'String'));
 anat_seq =      get(handles.edit29,'String');
 func_seq =      get(handles.edit30,'String');
 fwe=            get(handles.radiobutton19,'Value');
@@ -737,10 +745,10 @@ try
     load(fullfile(path,file));
     set(handles.edit1,'String',sel_dir);    
     set(handles.edit2,'String',num2str(Nrest));
-    set(handles.edit31,'String',num2str(Nstim)); 
-    set(handles.edit4,'String',num2str(NR));
+    set(handles.edit4,'String',num2str(Nstim)); 
+    set(handles.edit31,'String',num2str(NR));
     set(handles.edit32,'String',num2str(TR));    
-    set(handles.edit4,'UserData',cast(cast(block_ok,'uint8'),'logical'));
+    set(handles.edit31,'UserData',cast(cast(block_ok,'uint8'),'logical'));
     set(handles.edit29,'String',num2str(anat_seq));
     set(handles.edit30,'String',num2str(func_seq));     
     set(handles.edit26,'String',deblank(rois_dir));      
@@ -858,13 +866,13 @@ try
             set(gca,'XTickLabel',lb');
             xlim(handles.axes1,[1 NR*1000]);
             ylim(handles.axes1,[0 1.25]); 
-            set(handles.edit4,'UserData',[1]);
+            set(handles.edit31,'UserData',[1]);
             set(handles.uipanel8,'BackgroundColor',[0.906,0.906,0.906]);
             set(handles.text7,'BackgroundColor',[0.9,0.7,0.7]);            
     else
         axes(handles.axes1); 
         cla;
-        set(handles.edit4,'UserData',[0]);    
+        set(handles.edit31,'UserData',[0]);    
         set(handles.uipanel8,'BackgroundColor',[0.847,0.161,0]);
             set(handles.text7,'BackgroundColor',[0.847,0.161,0]);  
     end
@@ -1933,7 +1941,13 @@ function edit29_Callback(hObject, eventdata, handles)
 % hObject    handle to edit29 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+if ~isempty(get(hObject,'String'))
+    set(handles.edit29,'BackgroundColor',[1,1,1]); 
+    set(handles.uipanel21,'BackgroundColor',[0.906,0.906,0.906]);     
+else
+    set(handles.edit29,'BackgroundColor',[0.847,0.161,0]); 
+    set(handles.uipanel21,'BackgroundColor',[0.847,0.161,0]);    
+end
 % Hints: get(hObject,'String') returns contents of edit29 as text
 %        str2double(get(hObject,'String')) returns contents of edit29 as a double
 
@@ -1956,7 +1970,13 @@ function edit30_Callback(hObject, eventdata, handles)
 % hObject    handle to edit30 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+if ~isempty(get(hObject,'String'))
+    set(handles.edit30,'BackgroundColor',[1,1,1]); 
+    set(handles.uipanel21,'BackgroundColor',[0.906,0.906,0.906]);     
+else
+    set(handles.edit30,'BackgroundColor',[0.847,0.161,0]); 
+    set(handles.uipanel21,'BackgroundColor',[0.847,0.161,0]);    
+end
 % Hints: get(hObject,'String') returns contents of edit30 as text
 %        str2double(get(hObject,'String')) returns contents of edit30 as a double
 
@@ -1998,7 +2018,6 @@ end
 % Hints: get(hObject,'String') returns contents of edit32 as text
 %        str2double(get(hObject,'String')) returns contents of edit32 as a double
 
-
 % --- Executes during object creation, after setting all properties.
 function edit32_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to edit32 (see GCBO)
@@ -2010,3 +2029,4 @@ function edit32_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
