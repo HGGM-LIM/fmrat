@@ -22,7 +22,7 @@ function varargout = fmri_gui(varargin)
 
 % Edit the above text to modify the response to help fmri_gui
 
-% Last Modified by GUIDE v2.5 11-Aug-2014 13:46:01
+% Last Modified by GUIDE v2.5 19-Aug-2014 11:47:59
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -2029,4 +2029,3 @@ function edit32_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-

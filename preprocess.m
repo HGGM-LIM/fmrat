@@ -298,7 +298,7 @@ if ~defs.inifti
     catch err
         err_file    =   fopen(err_path,'a+');     
          fprintf(err_file,'Error Preprocessing %s \r\n Acq %s \r\n\r\n',...
-                     func,getReport(err));
+                     this.paths_func,getReport(err));
         fclose(err_file);
     end 
     

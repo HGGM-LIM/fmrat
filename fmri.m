@@ -156,7 +156,7 @@ if ispc
 end
 
 work_dir='Processed';
-
+global t0
 % Required defaults are marked with ###
 defs=struct( ...
     'd',            d,          ... %###
@@ -220,7 +220,7 @@ addpath(genpath(install),'-0');
 addpath(genpath(spmpath),'-0'); 
 
 spm('FMRI'); pause(3);
-cputime
+t0 = tic;
 
 
   
@@ -464,7 +464,7 @@ end
 function do(action)
 
 
-global d t err_path install work_dir
+global d t err_path install work_dir t0
 
 
 switch lower(action)
@@ -1208,7 +1208,8 @@ save Data.mat -append defs
 fprintf('===================================================================\r\n');
 fprintf('fMRat:     PROCESSING FINISHED\r\n');
 fprintf('===================================================================\r\n');
-cputime
+t1=toc(t0);
+fprintf('CPU time in seconds: %s\r\n', num2str(t1));
 end
 
 end
