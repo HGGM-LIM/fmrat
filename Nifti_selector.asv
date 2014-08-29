@@ -327,21 +327,21 @@ function pushbutton4_Callback(hObject, eventdata, handles)
 idx             =   get(handles.listbox2,'Value');
 file_im_list    =   get(handles.listbox2,'String');
 main_path       =   get(handles.text7,'String');
-mp              =   repmat(main_path,size(idx,2),1);
-sp              =   repmat(filesep,size(idx,2),1);
-filename        =   strcat(mp,sp,char(file_im_list{idx,:}));
+mp=repmat(main_path,size(idx,2),1);
+sp=repmat(filesep,size(idx,2),1);
+filename = strcat(mp,sp,char(file_im_list{idx,:}));
 for p=1:size(filename,1)
         if size(filename,1) == 1 
-            [path nam ext]  =   fileparts(filename);
+            [path nam ext]=fileparts(filename);
         else
-            [path nam ext]  =   fileparts(filename(p,:));
+            [path nam ext]=fileparts(filename(p,:));
         end 
     if strcmp(deblank(ext),'.nii')
-        im_list     =   get(handles.listbox5,'String');
+        im_list=get(handles.listbox5,'String');
         if  size(filename,1) == 1 
-        im_list     =   strvcat(im_list,filename);
+        im_list=strvcat(im_list,filename);
         else
-         im_list    =   strvcat(im_list,filename(p,:));
+         im_list=strvcat(im_list,filename(p,:));
         end
     else
         errordlg('Selection is not a single-file Nifti formatted image');
@@ -352,22 +352,60 @@ set(handles.text13,'String',num2str(size(im_list,1)));
 guidata(hObject, handles);    
 
 function [ok,handles] = check_im_lists(hObject, handles)
-f_list  =   get(handles.listbox3,'String');
-a_list  =   cellstr(get(handles.listbox4,'String'));
-m_list  =   cellstr(get(handles.listbox5,'String'));
+f_list=get(handles.listbox3,'String');
+a_list=cellstr(get(handles.listbox4,'String'));
+m_list=cellstr(get(handles.listbox5,'String'));
 
 if size(f_list,1)==size(a_list,1) && size(a_list,1)==size(m_list,1)
     ok=true;
+
+%     try
+        
+% BUILDS A STRUCTURE WITH STUDIES-ACQ-FILES (WITH REPEATED REF AND MASK IMAGES)        
+%         files       =   struct();
+%         studies     =   '';
+%         last_study  =   '';
+%         last_k      =   0;
+%         last_acq     =   '';
+%         for k=1:size(f_list,1)
+%             [path study ext]    =   fileparts(fileparts(fileparts(f_list(k,:))));
+%             [route acq ext]     =   fileparts(fileparts(f_list(k,:))); 
+%             if strcmp(last_acq,acq) 
+%                 eval(['files.study' study '.' acq '.p_func=horzcat(files.study' study '.' acq '.p_func, cellstr(f_list(k,:)))']);
+%                 eval(['files.study' study '.' acq '.p_ref=horzcat(files.study' study '.' acq '.p_ref, a_list(k,:))']);                
+%                 eval(['files.study' study '.' acq '.mask=horzcat(files.study' study '.' acq '.mask, m_list(k,:))']);                
+%                 last_k  =   k;
+%                 last_study  =   study;
+%                 last_acq    =   acq;  
+%             else
+%                 eval(['files.study' deblank(study) '.' acq '=struct(''p_func'','''','...
+%                     '''p_ref'','''',''mask'','''')']);
+%                 eval(['files.study' deblank(study) '.' acq '.p_func=cellstr(f_list(last_k+1:k,:))''']);
+%                 eval(['files.study' deblank(study) '.' acq '.p_ref=(a_list(last_k+1:k,:))''']);                
+%                 eval(['files.study' deblank(study) '.' acq '.mask=(m_list(last_k+1:k,:))''']);                   
+%                 studies     =   strvcat(studies,study);
+%                 last_k  =   k;
+%                 last_study  =   study;
+%                 last_acq    =   acq; 
+%             end
+%             
+%         end
+% 
+%     catch 
+%         errordlg('Unable to build output data structure');
+%     end
+
+
 
     try
         files       =   struct();
         studies     =   '';
         last_study  =   '';
         last_k      =   0;
-        last_acq    =   '';
+        last_acq     =   '';
         for k=1:size(f_list,1)
             fname   =   regexprep(f_list(k,:),'[\. ]','_');
-            [path study ext]    =   (fileparts(fileparts(fileparts(fname))));
+            [path study ext]    =   (fileparts(fileparts(fname)));
             [route acq ext]     =   (fileparts(f_list(k,:))); 
             if strcmp(last_study,study) 
                 eval(['files.study' study '.p_func=vertcat(files.study' study '.p_func, cellstr(f_list(k,:)))']);

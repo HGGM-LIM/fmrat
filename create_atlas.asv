@@ -8,17 +8,12 @@ function create_atlas(varargin)
 %       *   outname= output name for the atlas
 %
 %   create_atlas(): Registers and averages
-%   NOT RECOMMENDED TO DO ALLTOGETHER. FIRST REGISTER, THEN CHECK THE
-%   RESULT, DICARD WRONG IMAGES AND THEN AVERAGE.
+% 
 % 
 % Don't forget to
 %     -reorient and center images first to help the registrations to
 %     converge
 %     -make sure the preset(default parameters created with SPMMouse) is correct and available at this directory for this ref. image
-%
-%   FOLLOW fix_atlas.m instructions to remove artifacts
-%
-%
 
           
 action=''
@@ -85,37 +80,34 @@ switch action
         files   =   [repmat([proc filesep],size(a,2),1) char(a(1,:)')];
         files   =   cellstr(files);         
             
-        [files,dirs] = spm_select('FPList',proc,'^w.*_N4.nii');
+        files   =   sel_files(proc,'w*.nii');
         V       =   spm_vol(files);
+        v       =   spm_read_vols(V);
     
         result  =   zeros(V(1).dim);
-        count   =   zeros(V(1).dim);
-%         figure, 
+        ies     =   zeros([V(1).dim, size(files,1)]);
         for k=1:size(files,1) 
-            temp            =   spm_read_vols(V(k));
-%             mu              =   mean(temp(:));
-%             sigma           =   std(temp(:));
-%             plot(hist(temp(:))); hold on;
+            temp            =   v(:,:,:,k);
             
-%             %remove outliers
-%             outliers        =   (temp - mu) > 2*sigma;
-%             temp(outliers)  =   NaN; % Add NaN valu            
+            %remove outliers
             
-            count           =   count + (temp>0);  % excludes NaN
+            
+            ies(:,:,:,k)    =   temp>0;  % excludes NaN
             maxi            =   max(temp(:));
             mini            =   min(temp(:));
             % normalize each registered image to [0-1]
-            result          =   result+((temp-mini)/(maxi-mini)); 
+            result          =   result+((v(:,:,:,k)-mini)/(maxi-mini)); 
         end
-%         hold off;
+        
+        count       =   sum(ies,4);
         result      =   result./count;
         
         RES         =   V(1);
         RES.fname   =   [proc filesep outname];
         RES.dt(1)   =   4;
-        result      =   result.*(2^16-1)./2;    % spread hist to 2bytes     
-        spm_write_vol(RES,int16(result));      % write as int16 to save disk space     
-        fprintf('output written');
+        result      =   result.*(2^16-1);   % spread hist to 2bytes     
+        spm_write_vol(RES,int16(result));   % write as int16 to save disk space     
+
     
     end
  end

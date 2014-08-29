@@ -268,7 +268,7 @@ switch mode_reg
                 movefile(deblank(outnames(l,:)),new_path);
                 rois2(l,1)   =    cellstr(new_path);
             end
-            this.rois(ff)   =   {rois2};        
+            this.rois{ff}   =   {rois2};        
         catch
             this.rois(ff)   =    cellstr('');
         end   

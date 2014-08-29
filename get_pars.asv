@@ -1,7 +1,7 @@
-function [orient,r_out,idist,m_or,dims,FOV,resol,offset,tp,day,n_acq,n_coils,cmpx,scale,TR]=get_pars(path)
+function [orient,r_out,idist,m_or,dims,FOV,resol,offset,tp,day,n_acq,n_coils,cmpx,scale]=get_pars(path)
 
-% FUNCTION get_pars.m
-% Extracts Bruker aquisition parameters from acqp, method and reco files
+% FUNCTION get_or.m
+% Extracts Bruker aquisition parameters
 
 
 global rotate
@@ -55,9 +55,7 @@ global rotate
                offset(1)    =   read(1);           
             case '##$ACQ_phase1_offset' 
                read         =   strread(fgetl(fid),'%f','delimiter','\\ '); 
-               offset(2)    =   read(1);  
-            case '##$ACQ_repetition_time'
-                TR          =   eval(fgetl(fid));
+               offset(2)    =   read(1);           
         end
     end
     fclose(fid);

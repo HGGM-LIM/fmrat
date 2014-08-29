@@ -14,7 +14,9 @@
 	-SPM in the Matlab path
 
 3. 	INSTALLATION AND LAUNCH
-	Just add the fMRat folder to the Matlab path and use it. Execute "fMRat" in the Matlab command line to start the 		tool.
+	Just add the fMRat folder to the Matlab path and use it. Execute "fMRat" in the Matlab command line to start the tool.
+	Testing images can be found at https://drive.google.com/folderview?id=0B0Cn_u1ojg2ubi1OZjVrdVliMlU&usp=sharing
+		(If you are using the provided atlas for Wistar and Sprague-Dawley strains, please place the folders "Atlas_SD" and "Atlas_Wistar" in the same folder where fMRat code -and fmri.m function- are)
 	
 4. 	DOCUMENTATION
   	READ [MANUAL] (https://github.com/HGGM-LIM/fmrat/blob/master/doc/fMRat_Manual.pdf?raw=true), SPECIALLY "BEFORE YOU 	START" SECTION.

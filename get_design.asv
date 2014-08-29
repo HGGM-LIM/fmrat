@@ -1,0 +1,83 @@
+function [files,onsets,rp, paths_on,paths_off] = get_design (source,this,ff, defs)
+
+
+global err_path
+
+    cd(deblank(source));
+    reg         =   defs.realign;
+    coreg       =   defs.coreg;
+    smooth      =   defs.smooth;
+    mode_reg    =   defs.mode_reg;
+
+    NR          =   this.des_mtx(ff).NR;
+    Nrest       =   this.des_mtx(ff).Nrest;
+    Nstim       =   this.des_mtx(ff).Nstim;
+    on          =   this.des_mtx(ff).on;
+    off         =   this.des_mtx(ff).off;    
+    paths_on    =   '';
+    paths_off   =   '';
+
+   [all st]  =   spm_select('FPList',pwd,['^wr' defs.im_name '.*_s']);
+    if isempty(all)
+        [all st]  =   spm_select('FPList',pwd,['^r' defs.im_name '.*_s']);
+    end
+    if isempty(all)
+        [all st]  =   spm_select('FPList',pwd,['^wr' defs.im_name '((?!\_s).)*$']);
+    end
+     if isempty(all)
+        [all st]  =   spm_select('FPList',pwd,['^r' defs.im_name '((?!\_s).)*$']);
+    end   
+     if isempty(all)
+        warning('No realigned files were found. Realignment is compulsory prior to analysis')
+     end     
+    all   =  cellstr(all);
+    
+    if (size(all,1)~=NR||isempty(all))
+        err_file    =   fopen(err_path,'a+');
+        fprintf(err_file,'Error in %s: Unable to asign files to all elements on the design matrix',source);
+        fclose(err_file);
+        return;
+    end 
+    
+    
+    idx         =   [1:NR];
+    idx         =   mod(idx,(Nrest+Nstim))-Nrest;
+    onsets      =   find(idx==0);
+    onsets      =   onsets(1:(size(onsets,2)-1));  
+    
+    [beg endd p array]  =   regexp(all,'\d\d\d\d');
+    nums=cellfun(@char,array{:,1},'UniformOutput',0);
+    nums=str2num(nums{1,1});
+    
+    for k=1:size(all,1)
+           [path nam ext]   =   fileparts(all(k));        
+        [beg endd p array]  =   regexp(nam,'\d\d\d\d');
+        ind_on              =   [];
+        ind_off             =   [];
+        if ~isempty(array)
+            nums(k)         =   eval(char(array));
+            ind_on          =   find(on==eval(char(array)));
+            ind_off         =   find(off==eval(char(array)));
+        end
+        if ~isempty(ind_on) 
+            paths_on        =   [paths_on; all(k)];
+        elseif ~isempty(ind_off) 
+            paths_off       =   [paths_off; all(k)]; 
+        end
+    end       
+    
+    
+    
+    if (size(paths_on,1)~=size(on,2))||(size(paths_off,1) ~=size(off,2)) ||isempty(paths_on) || isempty(paths_off)
+        err_file    =   fopen(err_path,'a+');        
+        fprintf(err_file,'Error in %s: Unable to asign files to all elements on the design matrix',path);
+        fclose(err_file);        
+        return;
+    end  
+    paths_on    =    cellstr(paths_on);
+    paths_off   =   cellstr(paths_off);    
+    onsets      =   onsets;
+
+    
+    
+end

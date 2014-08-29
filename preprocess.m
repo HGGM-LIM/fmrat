@@ -1,4 +1,4 @@
-function [results]=preprocess(defs)
+function [results, defs]=preprocess(defs)
 
 % FUNCTION preprocess.m
 % Searches recursively inside the fMRI folder for the functional and
@@ -10,7 +10,7 @@ global err_path t work_dir
 
 if ~defs.inifti
 
-
+    TR          =   defs.TR;
     func_seq    =	defs.func_seq;
     anat_seq    =   defs.anat_seq;
     %___________________________Search for '2dseq' with the functional pulseprogram______________________________________________________
@@ -207,7 +207,7 @@ if ~defs.inifti
         for u=1:size(this.paths_func,1)
                 fprintf('-------------------------------------------------------------------\n');        
                 fprintf('Functional to NIFTI:   %s\n',this.paths_func(u,:));  
-                [orient,r_out,idist,m_or,dims,FOV,resol,offset,tp,day,n_acq,n_coils,cmpx,scale]=get_pars(this.paths_func(u,:));
+                [orient,r_out,idist,m_or,dims,FOV,resol,offset,tp,day,n_acq,n_coils,cmpx,scale,TR]=get_pars(this.paths_func(u,:));
                 this.or{u}          =   cellstr(orient);
                 this.vox(u,:)       =   resol;
                 [Img]               =   read_seq(this.paths_func(u,:),dims,tp,orient,r_out);
@@ -238,7 +238,10 @@ if ~defs.inifti
                 end
                fprintf('-------------------------------------------------------------------\n');
         end % END loop FUNCS TO NIFTI
-
+        
+        if isempty(TR)
+            defs.TR             =   TR;
+        end
     %------------------------------------------------------------------------------------------------------------------------------------
     % REFS TO NIFTI loop  
     %____________________________________________________________________________________________________________________________________      

@@ -6,7 +6,7 @@ function [dest fname]=Bruker2nifti(path)
 
 global rotate
 
-[orient,r_out,idist,m_or,dims,FOV,resol,offset,tp,day,n_acq,n_coils,cmpx,scale]=get_pars(path);
+[orient,r_out,idist,m_or,dims,FOV,resol,offset,tp,day,n_acq,n_coils,cmpx,scale,TR]=get_pars(path);
 if dims(4)>1 
     fprintf('The selected reference image has more than one volume'); 
     return;

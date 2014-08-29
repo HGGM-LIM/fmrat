@@ -468,8 +468,8 @@ try
     parent   =   ancestor(hObject,'figure');
     if all(~isempty(data))
         set(parent,'UserData',data);
-        set(handles.text41,'Visible','on');            
-        set(handles.text41,'String','OK','BackgroundColor', [0.161,0.847,0]);        
+           set(handles.text41,'Visible','on');            
+           set(handles.text41,'String','OK','BackgroundColor', [0.161,0.847,0]);        
     else
         set(handles.text41,'Visible','on');            
         set(handles.text41,'String','WRONG','BackgroundColor', [0.847,0.161,0]);        
@@ -646,7 +646,7 @@ if sel_dir ~=0
         p   =   ancestor(hObject,'figure');
         set(p,'UserData',data_struct);
         
-        if ~any(strcmp(data_struct,'error'))
+        if ((~strcmp(data_struct,'error')))
            set(handles.text41,'Visible','on');            
            set(handles.text41,'String','OK','BackgroundColor', [0.161,0.847,0]);
         else

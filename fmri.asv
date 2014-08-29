@@ -874,6 +874,8 @@ for st=1:size(studies,1)
                     build_SPM (paths, onsets, defs.Nstim, rp, proc,mask,paths_on,paths_off,this.des_mtx(i).cv,defs.an_mode, defs.TR); 
                 end
                      cd(source);
+        %              delete('R*.nii');
+        %              delete('rR*.nii');        
             catch err
                 err_file	=   fopen(err_path,'a+');    
                  if ~defs.inifti             
@@ -996,12 +998,7 @@ for st=1:size(studies,1)
 
     %get rois
     rois    =   {};
-    if ~isempty(this.rois)
-        rois    =   this.rois{i};
-    else
-       fprintf(err_file,'Error reading warped ROIs. %s \r\n Acq %s:\r\n %s\r\n\r\n',char(studies{st}),char(this.pfunc{i}));
-       fclose(err_file);        
-    end
+    if ~isempty
     
     %__GET SPM STRUCT______________________________________________________
     cd(proc);

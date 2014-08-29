@@ -287,7 +287,7 @@ func_seq =      get(handles.edit30,'String');
 fwe=            get(handles.radiobutton19,'Value');
 p=              str2num(get(handles.edit24,'String'));
 k=              str2num(get(handles.edit25,'String'));
-
+TR          =   str2num(get(handles.edit32,'String'));
 
 if ~strcmp(action,'all') && ~preserve
    warndlg(['You are not following the typical workflow, and "Preserve previous processing steps" is NOT checked. ' ...
@@ -299,12 +299,12 @@ end
 ok= ['isdir(sel_dir) && (block_ok==1) && ' ...
     '((coreg && (sp~=0))|| (coreg && (~isempty(atlas_dir))) || (~coreg))' ...
     '&& ((custom_resol==0)||((~isempty(rx))&&(~isempty(ry))&&(~isempty(rz))))'...
-    '&& ((sm==0)|| (~isnan(sx))) && ~isempty(anat_seq) && ~isempty(func_seq)'];
+    '&& ((sm==0)|| (~isnan(sx))) && ~isempty(TR) && ~isempty(anat_seq) && ~isempty(func_seq)'];
 if eval(ok)        
     set(handles.uipanel4,'BackgroundColor',[0.906,0.906,0.906]);
     set(handles.uipanel8,'BackgroundColor',[0.906,0.906,0.906]);
     fmri(action,sel_dir,sp,atlas_dir,sm,coreg,2,anat_seq,func_seq,NR,Nrest,...
-        Nstim,0,fwe,p,k,custom_atlas,custom_resol,rx,ry,rz,sx,preserve,preprocess,realign, design,estimate, display,0,[],[],rois_dir);
+        Nstim,0,fwe,p,k,custom_atlas,custom_resol,rx,ry,rz,sx,preserve,preprocess,realign, design,estimate, display,0,[],[],rois_dir,TR);
 else
     if ~(isdir(sel_dir)) 
         set(handles.edit1,'String','Not valid');
@@ -346,6 +346,10 @@ else
         set(handles.text14,'BackgroundColor',[0.847,0.161,0]);
         set(hObject,'Value',0);  
         errordlg('Smoothing resolution is not valid');
+    elseif isempty(TR) 
+        set(handles.edit32,'BackgroundColor',[0.847,0.161,0]);
+        set(hObject,'Value',0);  
+        errordlg('Please fill in a valid number for TR in miliseconds'); 
     elseif isempty(anat_seq) || isempty(func_seq)
         set(handles.uipane21,'BackgroundColor',[0.847,0.161,0]);
         set(hObject,'Value',0);  
@@ -634,7 +638,7 @@ fwe=            get(handles.radiobutton19,'Value');
 p =             str2num(get(handles.edit24,'String'));
 k =             str2num(get(handles.edit25,'String'));
 rois_dir    =   get(handles.edit26,'String');
-
+TR          =   str2num(get(handles.edit32,'String'));
 
 ok= ['isdir(sel_dir) && (block_ok==1) && ' ...
     '((coreg && (sp~=0))|| (coreg && (~isempty(atlas_dir))) || (~coreg))' ...
@@ -642,7 +646,7 @@ ok= ['isdir(sel_dir) && (block_ok==1) && ' ...
     '&& ((sm==0)||(~isnan(sx))) && ((p>0)|| (p>=1) ||(~isnan(p)))&& ((k>1)||(~isnan(k)))'];
 
 if eval(ok)        
-    set(handles.uipanel4,'BackgroundColor',[0.867,0.918,0.976]);
+    set(handles.uipanel4,'BackgroundColor',[0.906,0.906,0.906]);
     set(handles.uipanel8,'BackgroundColor',[0.906,0.906,0.906]);
     cd(sel_dir);
     [file,path] = uiputfile('config.mat','Save config file');
@@ -654,7 +658,7 @@ if eval(ok)
             save(fullpath,'sel_dir','block_ok','NR','Nrest','Nstim',...
                 'anat_seq','func_seq','coreg','custom_atlas','sp',...
                 'atlas_dir','custom_resol','rx','ry','rz','sm','fwe',...
-                'p','k','sx','prep','rea','des','tim','dis','preserve','rois_dir');
+                'p','k','sx','prep','rea','des','tim','dis','preserve','rois_dir','TR');
             fclose all;
         catch
             errordlg('Cannot save config file here. Check folder permissions');
@@ -723,8 +727,7 @@ elseif (k<1) || (isnan(k))
 end
 
 set(hObject,'Value',0);
-fclose all
-
+ 
 % Hint: get(hObject,'Value') returns toggle state of togglebutton4
 
 
@@ -745,6 +748,7 @@ try
     set(handles.edit2,'String',num2str(Nrest));
     set(handles.edit4,'String',num2str(Nstim)); 
     set(handles.edit31,'String',num2str(NR));
+    set(handles.edit32,'String',num2str(TR));    
     set(handles.edit31,'UserData',cast(cast(block_ok,'uint8'),'logical'));
     set(handles.edit29,'String',num2str(anat_seq));
     set(handles.edit30,'String',num2str(func_seq));     
@@ -1169,7 +1173,7 @@ elseif strcmp(sel,'togglebutton7')
                 set(handles.edit11,'String',sel_dir);
                 set(handles.edit11,'UserData',sel_dir);
                 set(handles.radiobutton10,'Value',1);                
-                set(handles.uipanel14,'BackgroundColor',[0.867, 0.918, 0.976]);
+                set(handles.uipanel14,'BackgroundColor',[0.906,0.906,0.906]);
             else
                 set(handles.radiobutton10,'Value',1);                 
                 set(handles.edit11,'String','Not valid');
@@ -1940,7 +1944,7 @@ function edit29_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 if ~isempty(get(hObject,'String'))
     set(handles.edit29,'BackgroundColor',[1,1,1]); 
-    set(handles.uipanel21,'BackgroundColor',[0.867, 0.918, 0.976]);     
+    set(handles.uipanel21,'BackgroundColor',[0.906,0.906,0.906]);     
 else
     set(handles.edit29,'BackgroundColor',[0.847,0.161,0]); 
     set(handles.uipanel21,'BackgroundColor',[0.847,0.161,0]);    
@@ -1969,7 +1973,7 @@ function edit30_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 if ~isempty(get(hObject,'String'))
     set(handles.edit30,'BackgroundColor',[1,1,1]); 
-    set(handles.uipanel21,'BackgroundColor',[0.867, 0.918, 0.976]);     
+    set(handles.uipanel21,'BackgroundColor',[0.906,0.906,0.906]);     
 else
     set(handles.edit30,'BackgroundColor',[0.847,0.161,0]); 
     set(handles.uipanel21,'BackgroundColor',[0.847,0.161,0]);    
@@ -2001,6 +2005,31 @@ function togglebutton4_KeyPressFcn(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 
+
+function edit32_Callback(hObject, eventdata, handles)
+% hObject    handle to edit32 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+if ~isempty(str2num(get(hObject,'String')))
+    set(handles.edit32,'BackgroundColor',[1,1,1]); 
+else
+    set(handles.edit32,'BackgroundColor',[0.847,0.161,0]); 
+    set(handles.edit32,'String','');   
+end
+% Hints: get(hObject,'String') returns contents of edit32 as text
+%        str2double(get(hObject,'String')) returns contents of edit32 as a double
+
+% --- Executes during object creation, after setting all properties.
+function edit32_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit32 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
 
 
 % --------------------------------------------------------------------
