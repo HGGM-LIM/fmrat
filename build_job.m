@@ -33,11 +33,13 @@ if an_mode
         'multi_reg',    {multireg},                                         ...
         'hpf',          128                                                 ...
         );
-    if isempty(mask) 
-        em  =   {''}; 
+    fid = fopen(mask,'r');
+    if fid<1
+        em  =   {''};
     elseif ischar(mask)
         em  =   cellstr(mask); 
     end
+    
     %bases = struct('hrf',struct('derivs',[1,1]));
     bases   =   struct('fir',struct('length',1,'order',1));
 %     bases = struct('hrf',struct('derivs',[0,0]));
@@ -74,11 +76,11 @@ t2.scans2   =   paths_on;
         'iCFI',         1,...
         'iCC',          5 ...
     );
-    if isempty(mask) em={''}; 
-    elseif isstruct(mask)
-        em  =   cellstr(mask.fname); 
+    fid = fopen(mask,'r');
+    if fid<1
+        em  =   {''};
     elseif ischar(mask)
-        em  =   cellstr(mask);
+        em  =   cellstr(mask); 
     end
     masking     =   struct( ...
         'tm',           struct('tm_none',[]),...

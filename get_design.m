@@ -1,4 +1,4 @@
-function [files,onsets,rp, paths_on,paths_off] = get_design (source,this,ff, defs)
+function [files,onsets,rp, paths_on,paths_off] = get_design (source_path,this,ff, defs)
 
 % FUNCTION get_design.m 
 % Selects the full paths of the images required for the analysis according to the
@@ -7,7 +7,7 @@ function [files,onsets,rp, paths_on,paths_off] = get_design (source,this,ff, def
 
 global err_path
 
-    cd(deblank(source));
+    cd(deblank(source_path));
 
     r           =   dir('rp*.txt');
     rp          =   char(r.name);
@@ -46,7 +46,7 @@ if ~defs.preserve
                             [st fin ex matches]=regexp(deblank(nam),['^wr' defs.im_name '.*_s'],'matchcase');                    
                    end           
                    if ~isempty(matches)
-                      files=[files; [source filesep deblank(all(i,:))]];
+                      files=[files; [source_path filesep deblank(all(i,:))]];
                    end
                end
             all=files;
@@ -90,7 +90,7 @@ else
     
     if (size(all,1)~=NR||isempty(all))
         err_file    =   fopen(err_path,'a+');
-        fprintf(err_file,'Error in %s: Unable to asign files to all elements on the design matrix',source);
+        fprintf(err_file,'Error in %s: Unable to asign files to all elements on the design matrix',source_path);
         fclose(err_file);
         return;
     end 

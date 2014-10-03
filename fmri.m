@@ -655,15 +655,15 @@ studies         =   fieldnames(data_struct);
                  fprintf('_______Realigning___________________________________________________________________________\n');
                 if ~defs.inifti
                     proc        =   [fileparts(fileparts(fileparts(this.p_func(i,:)))) filesep work_dir];
-                    source      =   proc;
+                    source_path      =   proc;
                 else
                     cd(fileparts(this.p_func{i,:}));
-                    source      =   fileparts(this.p_func{i,:});
-                    proc        =   source;
+                    source_path      =   fileparts(this.p_func{i,:});
+                    proc        =   source_path;
                 end
                  fprintf('____%s______\n',proc);
-%                   files=sel_files(source,[defs.im_name '*.nii']);
-                  files         =   get_images(source, defs); 
+%                   files=sel_files(source_path,[defs.im_name '*.nii']);
+                  files         =   get_images(source_path, defs); 
                   [vox fov]     =   vox_calc(spm_vol(files(1,:)));
                   
                   defaults.realign.estimate.sep         =   (vox(1)*2);
@@ -724,10 +724,10 @@ if defs.coreg
                      fprintf('____________________________________(Coreg to fmri space)___________________________________\n'); 
                     if ~defs.inifti
                         proc        =	[fileparts(fileparts(fileparts(this.p_func(i,:)))) filesep work_dir];
-                        source      =	proc;
+                        source_path      =	proc;
                     else
-                        source      =   fileparts(this.p_func{i,:});
-                        proc        =   source;
+                        source_path      =   fileparts(this.p_func{i,:});
+                        proc        =   source_path;
                     end
                      fprintf('____%s______\n',proc);
                      [pth nam ext]  =   fileparts(this.p_ref{i});
@@ -736,7 +736,7 @@ if defs.coreg
                          this.p_ref{i}=[pth filesep nam ext];
                      end
                      lastwarn('');
-                     [REF this defs]    =   brain_to_fmri(source,this,i, defs);                       
+                     [REF this defs]    =   brain_to_fmri(source_path,this,i, defs);                       
                      [msgstr, msgid]    =   lastwarn
                      if strcmp(msgstr,'Too many optimisation iterations')
                          err_file       =   fopen(err_path,'a+');             
@@ -744,7 +744,7 @@ if defs.coreg
                          fclose(err_file);                
                      end
                      this.p_ref_w{i}	=   REF;
-                     cd(source);
+                     cd(source_path);
                  catch err
                     err_file            =   fopen(err_path,'a+');    
                      if ~defs.inifti             
@@ -799,13 +799,13 @@ for st=1:size(studies,1)
                 fprintf('_______Smoothing____________________________________________________________________________\n');                      
                     if ~defs.inifti
                         proc	=   [fileparts(fileparts(fileparts(this.p_func(i,:)))) filesep work_dir];
-                        source	=   proc;
+                        source_path	=   proc;
                     else
-                        source  =   fileparts(this.p_func{i,:});
-                        proc    =   source;
+                        source_path  =   fileparts(this.p_func{i,:});
+                        proc    =   source_path;
                     end     
                 fprintf('____%s______\n',proc);        
-                fsmooth(source, defs); 
+                fsmooth(source_path, defs); 
 
             catch err
              err_file=fopen(err_path,'a+');        
@@ -851,15 +851,15 @@ for st=1:size(studies,1)
                 fprintf('_______Creating SPM.mat files_______________________________________________________________\n');
                     if ~defs.inifti
                         proc	=   [fileparts(fileparts(fileparts(this.p_func(i,:)))) filesep work_dir];
-                        source  =   proc;
+                        source_path  =   proc;
                     else
-                        source  =   fileparts(this.p_func{i,:});
-                        proc    =   source;
+                        source_path  =   fileparts(this.p_func{i,:});
+                        proc    =   source_path;
                     end
                 fprintf('____%s______\n',proc);
-                [paths,onsets,rp,paths_on,paths_off] = get_design(source,this,i, defs);
+                [paths,onsets,rp,paths_on,paths_off] = get_design(source_path,this,i, defs);
                 if defs.emask 
-                    this.mask{i}=[source filesep defs.mask]; 
+                    this.mask{i}=[source_path filesep defs.mask]; 
                 end    
                 this.paths_on{i} =  paths_on;
                 this.paths_off{i}=  paths_off;
@@ -873,7 +873,7 @@ for st=1:size(studies,1)
                 else
                     build_SPM (paths, onsets, defs.Nstim, rp, proc,mask,paths_on,paths_off,this.des_mtx(i).cv,defs.an_mode, defs.TR); 
                 end
-                     cd(source);
+                     cd(source_path);
             catch err
                 err_file	=   fopen(err_path,'a+');    
                  if ~defs.inifti             
@@ -916,10 +916,10 @@ for st=1:size(studies,1)
                 fprintf('_______Estimating___________________________________________________________________________\n');                      
                     if ~defs.inifti
                         proc    =   [fileparts(fileparts(fileparts(this.p_func(i,:)))) filesep work_dir];
-                        source	=   proc;
+                        source_path	=   proc;
                     else
-                        source  =   fileparts(this.p_func{i,:});
-                        proc    =   source;
+                        source_path  =   fileparts(this.p_func{i,:});
+                        proc    =   source_path;
                     end     
                 fprintf('____%s______\n',proc);        
                 cd(proc);
@@ -975,11 +975,11 @@ for st=1:size(studies,1)
     fprintf('_______Displaying___________________________________________________________________________\n'); 
             if ~defs.inifti
                 proc	=   [fileparts(fileparts(fileparts(this.p_func(i,:)))) filesep work_dir];
-                source  =   proc;
+                source_path  =   proc;
                 mask        =   defs.mask{1};                
             else
-                source  =   fileparts(this.p_func{i,:});
-                proc    =   source;
+                source_path  =   fileparts(this.p_func{i,:});
+                proc    =   source_path;
                 mask        =   this.mask{i};                
             end 
     fprintf('____%s______\n',proc);   
@@ -996,11 +996,13 @@ for st=1:size(studies,1)
 
     %get rois
     rois    =   {};
-    if ~isempty(this.rois)
+    if defs.coreg && ~isempty(this.rois)
         rois    =   this.rois{i};
-    else
+    elseif defs.coreg && isempty(this.rois)
        fprintf(err_file,'Error reading warped ROIs. %s \r\n Acq %s:\r\n %s\r\n\r\n',char(studies{st}),char(this.pfunc{i}));
-       fclose(err_file);        
+       fclose(err_file); 
+    else
+        rois    =   defs.rois;
     end
     
     %__GET SPM STRUCT______________________________________________________
