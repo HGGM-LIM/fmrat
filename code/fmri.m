@@ -216,8 +216,9 @@ spmpath     =   fileparts(which('spm.m'));
  
 savepath(fullfile(install,'old_path.mat'));
 restoredefaultpath; 
-addpath(genpath(install),'-0');
 addpath(genpath(spmpath),'-0'); 
+addpath(genpath(install),'-0');
+
 
 spm('FMRI'); pause(3);
 t0 = tic;
@@ -564,7 +565,12 @@ switch lower(action)
         else   % if no preset was found at least use Spmmouse defaults in stead of human's
             [rs,sts]    =   spm_select('FPList',defs.rois_dir,'^(?i)ROI.*\.nii$');
             defs.rois   =   cellstr(rs);       
-            defs.mask = {[defs.rois_dir filesep 'mask.nii']};            
+            defs.mask = {[defs.rois_dir filesep 'mask.nii']};   
+            try
+                fid         =   fopen(defs.mask,'r');
+            catch
+                defs.mask   =   {''};
+            end
             try 
                 spmmouse('load',[install filesep 'preset.mat']);
             catch

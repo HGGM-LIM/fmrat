@@ -677,17 +677,27 @@ function edit14_Callback(hObject, eventdata, handles)
 in_data = get(hObject,'String');
 set(handles.uipanel12,'BackgroundColor',[0.906,0.906,0.906]);
 if isdir(in_data) 
-    set(hObject,'String',in_data); 
-    [h studies data_struct]=Nifti_selector('dir', in_data);
-    uiwait;
-    handles.studies=studies;
-    handles.data_struct=data_struct;
-    guidata(hObject,handles);   
-    if ~isempty(studies) && ~isempty(data_struct)
-       set(handles.text41,'String','OK','BackgroundColor', [0.161,0.847,0]);
+    [path folder e]=fileparts(in_data);
+    if isdir(in_data) && ~isempty(folder) 
+        set(hObject,'UserData',in_data);
+        set(handles.edit14,'String',in_data);
+        set(handles.edit14,'UserData',in_data);
+        set(handles.uipanel12,'BackgroundColor',[0.906,0.906,0.906]);
+        [data_struct]=Nifti_selector('dir',in_data);
+        p   =   ancestor(hObject,'figure');
+        set(p,'UserData',data_struct);
+        
+        if ~any(strcmp(data_struct,'error'))
+           set(handles.text41,'Visible','on');            
+           set(handles.text41,'String','OK','BackgroundColor', [0.161,0.847,0]);
+        else
+           set(handles.text41,'Visible','on');            
+           set(handles.text41,'String','WRONG','BackgroundColor', [0.847,0.161,0]);
+        end       
     else
-       set(handles.text41,'String','WRONG','BackgroundColor', [0.847,0.161,0]); 
-    end  
+        set(handles.edit14,'String','Not valid');
+        set(handles.uipanel12,'BackgroundColor',[0.847,0.161,0]);   
+    end 
 else
     set(hObject,'String','Not valid');
     set(handles.uipanel12,'BackgroundColor',[0.847,0.161,0]);

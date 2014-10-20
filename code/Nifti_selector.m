@@ -104,7 +104,7 @@ guidata(handles.figure1,handles);
 
 
 % --- Outputs from this function are returned to the command line.
-function varargout = Nifti_selector_OutputFcn(hObject, eventdata, handles) 
+function dout = Nifti_selector_OutputFcn(hObject, eventdata, handles) 
 % varargout  cell array for returning output args (see VARARGOUT);
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -115,9 +115,9 @@ function varargout = Nifti_selector_OutputFcn(hObject, eventdata, handles)
 
     data_struct     =   get(hObject,'UserData');
 if ~isempty(data_struct)
-    varargout{1} = data_struct;
+    dout = data_struct;
 else
-    varargout{1} = {'error'};
+    dout = {'error'};
 end
 delete(hObject);
 
@@ -356,7 +356,7 @@ f_list  =   get(handles.listbox3,'String');
 a_list  =   cellstr(get(handles.listbox4,'String'));
 m_list  =   cellstr(get(handles.listbox5,'String'));
 
-if size(f_list,1)==size(a_list,1) && size(a_list,1)==size(m_list,1)
+if size(f_list,1)==size(a_list,1) 
     ok=true;
 
     try
@@ -372,7 +372,11 @@ if size(f_list,1)==size(a_list,1) && size(a_list,1)==size(m_list,1)
             if strcmp(last_study,study) 
                 eval(['files.study' study '.p_func=vertcat(files.study' study '.p_func, cellstr(f_list(k,:)))']);
                 eval(['files.study' study '.p_ref=vertcat(files.study' study '.p_ref, a_list(k,:))']);                
-                eval(['files.study' study '.mask=vertcat(files.study' study '.mask, m_list(k,:))']);                
+                if ~isempty(m_list{1,1})
+                    eval(['files.study' study '.mask=vertcat(files.study' study '.mask, m_list(k,:))']);                
+                else
+                    eval(['files.study' study '.mask=vertcat(files.study' study '.mask, {''''} )']);                
+                end
                 last_k  =   k;
                 last_study  =   study;
             else
@@ -380,7 +384,11 @@ if size(f_list,1)==size(a_list,1) && size(a_list,1)==size(m_list,1)
                     '''p_ref'','''',''mask'','''')']);
                 eval(['files.study' deblank(study) '.p_func=cellstr(f_list(last_k+1:k,:))''']);
                 eval(['files.study' deblank(study) '.p_ref=(a_list(last_k+1:k,:))''']);                
-                eval(['files.study' deblank(study) '.mask=(m_list(last_k+1:k,:))''']);                   
+                if ~isempty(m_list{1,1})
+                    eval(['files.study' deblank(study) '.mask=(m_list(last_k+1:k,:))''']);                   
+                else
+                    eval(['files.study' study '.mask=vertcat(files.study' study '.mask, {''''} )']);  
+                end
                 studies     =   strvcat(studies,study);
                 last_k  =   k;
                 last_study  =   study;
@@ -388,7 +396,7 @@ if size(f_list,1)==size(a_list,1) && size(a_list,1)==size(m_list,1)
             
         end
 
-    catch 
+    catch err
         errordlg('Unable to build output data structure');
     end
 
