@@ -603,7 +603,6 @@ switch lower(action)
                             'Nstim',    defs.Nstim, ...
                             'NR',       defs.NR     ...                        
                     );                    
-                   u.mask(k,1)      =   defs.mask;
                end
                defs.data_struct.(st{j})=u;
             end
