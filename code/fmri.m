@@ -1197,7 +1197,7 @@ end
 
 end
 
-close all
+
 fclose('all');
 
 
