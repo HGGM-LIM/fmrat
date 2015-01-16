@@ -1,4 +1,4 @@
-function [files,onsets,rp, paths_on,paths_off] = get_design (source_path,this,ff, defs)
+function [files,onsets, duration,rp] = get_design (source_path,this,ff, defs)
 
 % FUNCTION get_design.m 
 % Selects the full paths of the images required for the analysis according to the
@@ -15,14 +15,30 @@ global err_path
     coreg       =   defs.coreg;
     smooth      =   defs.smooth;
     mode_reg    =   defs.mode_reg;    
-    NR          =   this.des_mtx(ff).NR;
-    Nrest       =   this.des_mtx(ff).Nrest;
-    Nstim       =   this.des_mtx(ff).Nstim;
-    on          =   this.des_mtx(ff).on;
-    off         =   this.des_mtx(ff).off;    
-    paths_on    =   '';
-    paths_off   =   '';
     
+    if ~isempty(this.des_mtx(ff).NR) && ~isempty(this.des_mtx(ff).Nrest) && ~isempty(this.des_mtx(ff).Nstim)
+        NR          =   this.des_mtx(ff).NR;
+        Nrest       =   this.des_mtx(ff).Nrest;
+        Nstim       =   this.des_mtx(ff).Nstim;
+        idx         =   [1:NR];
+        idx         =   mod(idx,(Nrest+Nstim))-Nrest;
+        onsets      =   find(idx==1)-1;        
+        duration    =   Nstim;
+    elseif ~isempty(defs.NR) && ~isempty(defs.Nrest) && ~isempty(defs.Nstim) 
+        NR          =   this.des_mtx(ff).NR;
+        Nrest       =   this.des_mtx(ff).Nrest;
+        Nstim       =   this.des_mtx(ff).Nstim;
+        idx         =   [1:NR];
+        idx         =   mod(idx,(Nrest+Nstim))-Nrest;
+        onsets      =   find(idx==1)-1;        
+        duration    =   Nstim;
+    else
+        onsets      =   defs.onsets;
+        duration    =   defs.duration;
+    end
+        
+        
+
     im          =   dir('*.nii');
     all         =   char(im.name);   
 
@@ -96,29 +112,8 @@ else
     end 
 end
     
-    idx         =   [1:NR];
-    idx         =   mod(idx,(Nrest+Nstim))-Nrest;
-    onsets      =   find(idx==0);
-    onsets      =   onsets(1:(size(onsets,2)-1));  
-    
-    [beg endd p array]  =   regexp(files,'\d\d\d\d');
-    nums=cellfun(@char,array{:,1},'UniformOutput',0);
-    nums=str2num(nums{1,1});
-    [tf, loc] = ismember(nums, on);
-    paths_on = files(tf);
-    [tf, loc] = ismember(nums, off);
-    paths_off = files(tf);
-     
-    
-    
-    
-    if (size(paths_on,1)~=size(on,2))||(size(paths_off,1) ~=size(off,2)) ||isempty(paths_on) || isempty(paths_off)
-        err_file    =   fopen(err_path,'a+');        
-        fprintf(err_file,'Error in %s: Unable to asign files to all elements on the design matrix',path);
-        fclose(err_file);        
-        return;
-    end  
-   
+
+ 
    
     
 end

@@ -41,9 +41,6 @@ if ~defs.inifti
     for i=1:size(studies,1)    
     try
         [root rest]     =   fileparts(fileparts(t));
-        on      =   {};     
-        off     =   {};
-        cv      =   {};
         fNrest  =   {};
         fNstim  =   {};
         fNR     =   {};
@@ -148,48 +145,7 @@ if ~defs.inifti
                 else
                     this.paths_ref  =   strvcat(this.paths_ref,ref_path);
                 end
-              %Fill on,off
-               if ~(isempty(Nrest)&&isempty(Nstim)) %if Nrest & Nstim are 
-                                %Paravision parameters included in the method
-                    blocks      =   (NR-Nrest)/(Nrest+Nstim);
-                    im_block    =   Nrest+Nstim;
-                    ons         =   [];
-                    offs        =   [];
-                    for v=1:blocks 
-                        if isempty(offs) 
-                            offs    =   [1:Nrest];  
-                        else
-                            offs    =   [offs ((v-1)*im_block+1):((v-1)*im_block+Nrest)]; 
-                        end
-                        if isempty(ons) 
-                            ons     =   [Nrest+1:im_block];
-                        else
-                            ons     =   [ons ((v-1)*im_block+Nrest+1):(v*im_block)]; 
-                        end
-                    end;
-                    offs    =   [offs blocks*im_block+1:NR];
-               else %if Nrest & Nstim don't exist fill with defaults
-                    blocks      =   (NR-defs.Nrest)/(defs.Nrest+defs.Nstim);
-                    im_block    =   defs.Nrest+defs.Nstim;
-                    ons         =   [];
-                    offs        =   []; 
-                    for v=1:blocks 
-                        if isempty(offs) 
-                            offs    =   [1:defs.Nrest];  
-                        else
-                            offs    =   [offs ((v-1)*im_block+1):((v-1)*im_block+defs.Nrest)]; 
-                        end
-                        if isempty(ons) 
-                            ons     =   [defs.Nrest+1:im_block];
-                        else
-                            ons     =   [ons ((v-1)*im_block+defs.Nrest+1):(v*im_block)]; 
-                        end
-                    end;
-                    offs    =   [offs blocks*im_block+1:NR];
-               end
-               on{size(this.paths_func,1),1}        =   ons;
-               off{size(this.paths_func,1),1}       =   offs;
-               cv{size(this.paths_func,1),1}        =   [offs,ons];
+                
                fNrest{size(this.paths_func,1),1}    =   Nrest;
                fNstim{size(this.paths_func,1),1}    =   Nstim;
                fNR{size(this.paths_func,1),1}       =   NR; 
@@ -289,9 +245,6 @@ if ~defs.inifti
         result.vox      =   this.vox;
         result.or       =   this.or;
         result.des_mtx  =   struct( ...
-            'on',       on,...
-            'off',      off,...
-            'cv',       cv,...        
             'Nrest',    fNrest,...        
             'Nstim',    fNstim,...        
             'NR',       fNR...                    

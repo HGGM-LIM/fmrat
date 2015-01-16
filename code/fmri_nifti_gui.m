@@ -23,7 +23,7 @@ function varargout = fmri_nifti_gui(varargin)
 
 % Edit the above text to modify the response to help fmri_nifti_gui
 
-% Last Modified by GUIDE v2.5 28-Aug-2014 10:41:56
+% Last Modified by GUIDE v2.5 15-Jan-2015 12:51:25
 
 % Begin initialization code - DO NOT EDIT
 global test
@@ -201,6 +201,15 @@ block_ok =      get(handles.edit17,'UserData');
 NR =            str2num(get(handles.edit17,'String'));
 Nrest =         str2num(get(handles.edit15,'String'));
 Nstim =         str2num(get(handles.edit16,'String'));
+adv_dat     =   get(handles.uipanel20,'UserData');
+adv_paradigm=   [];
+adv_cov     =   [];
+if ~isempty(adv_dat) && isfield(adv_dat,'paradigm')
+    adv_paradigm=   adv_dat.paradigm;
+end
+if ~isempty(adv_dat) && isfield(adv_dat,'cov')
+    adv_cov         =   adv_dat.cov;
+end
 fwe=            get(handles.radiobutton8,'Value');
 p =             str2num(get(handles.edit23,'String'));
 k =             str2num(get(handles.edit24,'String'));
@@ -215,7 +224,7 @@ if ~strcmp(action,'all') && ~preserve
    return
 end
 
-ok= ['isdir(sel_dir) && all(struct_ok) && (block_ok==1) && ' ...
+ok= ['isdir(sel_dir) && all(struct_ok) && ((block_ok==1) || ~isempty(adv_paradigm)) && ' ...
     '((coreg && (sp~=0))|| (coreg && (~isempty(atlas_dir))) || (~coreg))' ...
     '&& ((custom_resol==0)||((~isempty(rx))&&(~isempty(ry))&&(~isempty(rz))))'...
     '&& ((sm==0)|| (~isnan(sx))) && exist(''data_struct'',''var'') && ~isempty(TR)'];
@@ -225,7 +234,7 @@ if eval(ok)
     cputime,
     eval(['fmri(action,sel_dir,sp,atlas_dir,sm,coreg,mode_reg,anat_seq,func_seq,'...
         'NR,Nrest,Nstim,0,fwe,p,k,custom_atlas,custom_resol,rx,ry,rz,sx,preserve,preprocess,' ...
-        'realign, design,estimate, display,1,studies,data_struct,rois_dir,TR)']);
+        'realign, design,estimate, display,adv_paradigm, adv_cov,1,studies,data_struct,rois_dir, TR)']);
 else
     if ~(isdir(sel_dir)) 
         set(handles.edit14,'String','Not valid');
@@ -237,7 +246,7 @@ else
        set(handles.text41,'String','WRONG','BackgroundColor', [0.847,0.161,0]);        
         errordlg(['Data structure retrieved from "Nifti selector" window is not valid. Press "Browse" '...
             'button again for fMRI folder selection and set functional-structural correspondences.']);
-    elseif block_ok==0
+    elseif block_ok==0 || ~isstruct(adv_paradigm)
         set(handles.uipanel19,'BackgroundColor',[0.847,0.161,0]);
         set(hObject,'Value',0);  
         errordlg('Block design is not valid');    
@@ -287,11 +296,11 @@ else
         set(handles.text34,'BackgroundColor',[0.847,0.161,0]); 
         set(hObject,'Value',0);  
         errordlg('Smoothing resolution is not valid');
-    elseif ~isfield(handles,'studies') ||  ~isfield(handles,'data_struct')
+    elseif ~exist('studies','var') ||  ~exist('data_struct','var')
         set(handles.text41,'String','WRONG','BackgroundColor', [0.847,0.161,0]); 
         errordlg('Please select your fMRI directory again and fill the Images structure through the Nifti Selector Window');
     elseif isempty(TR) 
-        set(handles.edit32,'BackgroundColor',[0.847,0.161,0]);
+        set(handles.edit28,'BackgroundColor',[0.847,0.161,0]);
         set(hObject,'Value',0);  
         errordlg('Please fill in a valid number for TR in miliseconds');           
     end
@@ -346,6 +355,15 @@ block_ok    =   get(handles.edit17,'UserData');
 NR =            str2num(get(handles.edit17,'String'));
 Nrest =         str2num(get(handles.edit15,'String'));
 Nstim =         str2num(get(handles.edit16,'String'));
+adv_dat     =  get(handles.uipanel20,'UserData');
+adv_paradigm=   [];
+adv_cov         =   [];
+if ~isempty(adv_dat) && isfield(adv_dat,'paradigm')
+    adv_paradigm=   adv_dat.paradigm;
+end
+if ~isempty(adv_dat) && isfield(adv_dat,'cov')
+    adv_cov         =   adv_dat.cov;
+end
 fwe=            get(handles.radiobutton8,'Value');
 p =             str2num(get(handles.edit23,'String'));
 k =             str2num(get(handles.edit24,'String'));
@@ -355,7 +373,8 @@ TR          =   str2num(get(handles.edit28,'String'));
 ok= ['~isempty(data) && all(struct_ok) && isdir(sel_dir) && (block_ok==1) && ' ...
     '((coreg && (sp~=0))|| (coreg && (~isempty(atlas_dir))) || (~coreg))' ...
     '&& ((custom_resol==0)||((~isempty(rx))&&(~isempty(ry))&&(~isempty(rz))))' ...
-    '&& ((sm==0)||(~isnan(sx))) && ((p>0)|| (p>=1) ||(~isnan(p)))&& ((k>1)||(~isnan(k)))'];
+    '&& ((sm==0)||(~isnan(sx))) && ((p>0)|| (p>=1) ||(~isnan(p)))&& ((k>1)||(~isnan(k)))'...
+    '&& ~isempty(TR)'];
 
 if eval(ok)        
     set(handles.uipanel12,'BackgroundColor',[0.867,0.918,0.976]);
@@ -369,7 +388,7 @@ if eval(ok)
             save(fullpath,'sel_dir','data','struct_ok','block_ok','NR','Nrest','Nstim',...
                 'coreg','custom_atlas','sp',...
                 'atlas_dir','custom_resol','rx','ry','rz',...
-                'rea','des','tim','dis','sm','fwe','p','k','sx','preserve','rois_dir','TR');
+                'rea','des','tim','dis','sm','fwe','p','k','sx','preserve','rois_dir','TR','adv_paradigm','adv_cov');
             fclose all;            
         catch
             errordlg('Cannot save config file here. Check folder permissions');
@@ -386,7 +405,7 @@ elseif ~all(struct_ok)
        set(handles.text41,'String','WRONG','BackgroundColor', [0.847,0.161,0]);        
         errordlg(['Data structure retrieved from "Nifti selector" window is not valid. Press "Browse" '...
             'button again for fMRI folder selection and set functional-structural correspondences.']);        
-elseif block_ok==0
+elseif block_ok==0 && ~isstruct(adv_paradigm)
         set(handles.uipanel19,'BackgroundColor',[0.847,0.161,0]);
         set(hObject,'Value',0);  
         errordlg('Block design is not valid');    
@@ -444,6 +463,11 @@ elseif (k<1) || (isnan(k))
         set(handles.edit25,'BackgroundColor',[0.847,0.161,0]);
         set(hObject,'Value',0);  
         errordlg('Cluster size should be greater than 1');     
+elseif isempty(TR) 
+        set(handles.edit28,'BackgroundColor',[0.847,0.161,0]);
+        set(hObject,'Value',0);  
+        errordlg('Please fill in a valid number for TR in miliseconds');           
+     
 end
 
 set(hObject,'Value',0);
@@ -480,6 +504,14 @@ try
     set(handles.edit15,'String',num2str(Nrest));
     set(handles.edit16,'String',num2str(Nstim)); 
     set(handles.edit17,'String',num2str(NR));
+    adv_dat      =  [];
+    if ~isempty(adv_paradigm) 
+        adv_dat.paradigm    =   adv_paradigm;
+    end
+    if ~isempty(adv_cov)    
+        adv_dat.cov    =   adv_cov;        
+    end
+    set(handles.uipanel20,'UserData',adv_dat);      
     set(handles.edit28,'String',num2str(TR));        
     set(handles.edit17,'UserData',cast(cast(block_ok,'uint8'),'logical'));
     set(handles.checkbox4,'Value',cast(cast(coreg,'uint8'),'logical'));
@@ -602,6 +634,30 @@ try
             set(handles.edit17,'UserData',[1]);
             set(handles.uipanel11,'BackgroundColor',[0.867,0.918,0.976]);
             set(handles.text26,'BackgroundColor',[0.9,0.7,0.7]);
+    elseif isstruct(adv_paradigm)
+            set(handles.axes3,'Visible','on');
+            axes(handles.axes3); 
+            xlabel  =   text(0,0,'Images','Visible','off');
+            set(handles.axes3,'XLabel',xlabel);
+            
+            if size(adv_paradigm.duration,1)==1
+               duration     =   repmat(adv_paradigm.duration,1,size(adv_paradigm.onsets,2)); 
+            end
+            y       =   zeros(1,adv_paradigm.NR*1000); 
+            for i=1:size(adv_paradigm.onsets,2)
+                y(adv_paradigm.onsets(i)*1000:((adv_paradigm.onsets(i)+duration(i))*1000))=1;
+            end
+            base    =   [1:adv_paradigm.NR*1000];
+            plot(handles.axes3,base,y,' .b');
+            set(gca,'XTick',adv_paradigm.onsets*1000);
+            lb=strread(num2str(adv_paradigm.onsets),'%s');
+            set(gca,'XTickLabel',lb');
+            
+            xlim(handles.axes3,[1 adv_paradigm.NR*1000]);
+            ylim(handles.axes3,[0 1.25]); 
+            set(handles.edit17,'UserData',[1]);
+            set(handles.uipanel19,'BackgroundColor',[0.867, 0.918, 0.976]);
+            set(handles.text26,'BackgroundColor',[0.9,0.7,0.7]);        
     else
         axes(handles.axes3); 
         cla;
@@ -626,13 +682,15 @@ function togglebutton6_Callback(hObject, eventdata, handles)
 
 p    =  ancestor(hObject,'figure');
 % SELECT DIR button
-
-if isunix 
-    %d='/opt/PV5.0/data/nmrsu/nmr/'; 
-    d='/media/fMRI_Rata/'; 
-end
-if ispc 
-    d='W:\Proyectos\fMRI\FMRI_RATA\'; 
+d   =   get(handles.edit14,'String');
+if isempty(d)
+    if isunix 
+        %d='/opt/PV5.0/data/nmrsu/nmr/'; 
+        d='/media/fMRI_Rata/'; 
+    end
+    if ispc 
+        d='W:\Proyectos\fMRI\FMRI_RATA\'; 
+    end
 end
 sel_dir = uigetdir(d,'Please select your fMRI directory:');
 if sel_dir ~=0 
@@ -1770,3 +1828,90 @@ function Print_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 printpreview
 printdlg
+
+
+% --- Executes on button press in pushbutton3.
+function pushbutton3_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton3 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+prev        =   get(handles.uipanel20,'UserData');
+if (isfield(prev,'paradigm')) && isstruct(prev.paradigm)
+    pdgm    =   prev.paradigm;
+    pdgm    =   Paradigm(pdgm.NR,pdgm.onsets, pdgm.duration);
+else
+    pdgm    =   Paradigm;
+end
+
+
+if isstruct(pdgm)
+    
+            %pass the data
+            prev.paradigm    =  pdgm;
+            set(handles.uipanel20,'UserData',prev);
+            set(handles.edit17,'UserData',1); %block_ok=1
+    
+            % DRAW
+            set(handles.axes3,'Visible','on');
+            axes(handles.axes3); 
+            xlabel  =   text(0,0,'Images','Visible','off');
+            set(handles.axes3,'XLabel',xlabel);
+            
+            if size(pdgm.duration,1)==1
+               duration     =   repmat(pdgm.duration,1,size(pdgm.onsets,2)); 
+            end
+            y       =   zeros(1,pdgm.NR*1000); 
+            for i=1:size(pdgm.onsets,2)
+                y(pdgm.onsets(i)*1000:((pdgm.onsets(i)+duration(i))*1000))=1;
+            end
+            base    =   [1:pdgm.NR*1000];
+            plot(handles.axes3,base,y,' .b');
+            set(gca,'XTick',pdgm.onsets*1000);
+            lb=strread(num2str(pdgm.onsets),'%s');
+            set(gca,'XTickLabel',lb');
+            
+            xlim(handles.axes3,[1 pdgm.NR*1000]);
+            ylim(handles.axes3,[0 1.25]); 
+            set(handles.edit17,'UserData',[1]);
+            set(handles.uipanel19,'BackgroundColor',[0.867, 0.918, 0.976]);
+            set(handles.text26,'BackgroundColor',[0.9,0.7,0.7]);
+else
+            set(handles.axes3,'Visible','on');
+            set(handles.edit17,'UserData',0); %block_ok=0     
+            set(handles.edit15,'String','');
+            set(handles.edit16,'String',''); 
+            set(handles.edit17,'String','');            
+            axes(handles.axes3); 
+            cla
+end
+
+% --- Executes on button press in pushbutton4.
+function pushbutton4_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton4 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+prev        =   get(handles.uipanel20,'UserData');
+NR          =   str2num(get(handles.edit17,'String'));
+if isempty(NR) && isfield(prev,'paradigm') && isfield(prev.paradigm,'NR') 
+    NR  =   prev.paradigm.NR;
+    if (isfield(prev,'cov')) && ~isempty(prev.cov)
+        covariates    =   prev.cov;
+        covariates    =   Covariate(covariates, NR);
+    else
+        covariates    =   Covariate([],NR);
+    end
+    prev.cov    =  covariates;
+    set(handles.uipanel20,'UserData',prev);
+elseif ~isempty(NR)
+        covariates    =   Covariate([],NR); 
+        prev.cov    =  covariates;
+        set(handles.uipanel20,'UserData',prev);        
+else
+    errordlg(['You cannot enter the covariates before defining NR. '...
+        'Please enter NR in the corresponding edit box or enter an advanced paradigm through "Advanced" button']);
+end
+
+
+
+
+

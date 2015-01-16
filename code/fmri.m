@@ -51,15 +51,6 @@ function fmri(varargin)
 % 
 %   RESTRICTIONS:
 %       
-%       *** Paradigm:
-%            The acquisition must have started & finished with rest
-%                    NR = Nrest + k* (Nstim+Nrest)
-%            where k is the numer of [stimulation,rest] blocks acquired 
-%                  __       __       __       __       __  
-%            ______| |______| |______| |______| |______| |______
-%
-%            In this example above k=5 
-%       
 %       *** Atlas
 %           MUST be in Nifti format, and called atlas.nii
 %
@@ -164,13 +155,17 @@ defs=struct( ...
     'im_name',      'Image',    ... %###    
     'anat_seq',     'RARE',     ... %###
     'func_seq',     'ePI_FMRI', ... %###
-    'Nrest',        15,         ... %### Number of func.images acquired at rest
-    'Nstim',        5,          ... %### Number of func.images acquired at stimulation
-    'NR',           115,        ... %### Total number of images acquired
+    'Nrest',        [],         ... %### Number of func.images acquired at rest
+    'Nstim',        [],         ... %### Number of func.images acquired at stimulation
+    'NR',           [],         ... %### Total number of images acquired
+    'onsets',       [],         ... %### Onsets of the paraddigm
+    'duration',     [],         ... %### Durations of the stimulations (as defined in SPM, a scalar if constant)
+    'cov',          [],         ... %### Optional covariables
     'TR',           [],         ... %### Repetition time in the MR sequence (in miliseconds)
     'preprocess',   true,       ... %### preprocess data -format conversion,files autodetection- (only Bruker)?
     'realign',      true,       ... %### realign series?
     'coreg',        true,       ... %### coregister masks?
+    'smooth',       true,       ... %### smooth?    
     'design',       true,       ... %### design matrix?
     'estimate',     true,       ... %### estimate model?
     'display',      true,       ... %### infere, display & save results?    
@@ -188,7 +183,6 @@ defs=struct( ...
     'mask',         {{''}},     ... % Mask path. If empty, no masking applied
     'rois',         {{''}},     ...
     'rois_dir',     '',         ... % This will be filled at runtime    
-    'smooth',       true,       ... %### Smooth?
     'kernel',       [1,1,1],    ... % Smoothing kernel in mm, required only if smooth=true
     'an_mode',      1,          ... %### Mode fMRI? an_mode=0->mode PET
     'fwe',          1,          ... %### input threshold is FWE corrected?
@@ -373,26 +367,35 @@ else
     if nargin>=28 && ~isempty(varargin{28}) 
         defs.display       =   varargin{28};     
     end 
-  
-    
-    if nargin>=29 && ~isempty(varargin{29}) 
-        defs.inifti         =   varargin{29};     
-    end  
+    if nargin>=29 && isstruct(varargin{29}) 
+        paradigm        =   varargin{29};     
+        defs. NR        =   paradigm.NR;
+        defs. onsets    =   paradigm.onsets;
+        defs. duration  =   paradigm.duration;        
+    end 
     if nargin>=30 && ~isempty(varargin{30}) 
-        defs.studies        =   varargin{30};     
-    end  
+        defs.cov    =   varargin{30};     
+    end     
+    
     if nargin>=31 && ~isempty(varargin{31}) 
-        defs.data_struct    =   varargin{31};     
-    end
+        defs.inifti         =   varargin{31};     
+    end  
     if nargin>=32 && ~isempty(varargin{32}) 
-        defs.rois_dir    =   varargin{32};     
+        defs.studies        =   varargin{32};     
+    end  
+    if nargin>=33 && ~isempty(varargin{33}) 
+        defs.data_struct    =   varargin{33};     
+    end
+    if nargin>=34 && ~isempty(varargin{34}) 
+        defs.rois_dir    =   varargin{34};     
     end    
     if (defs.inifti==1) && (isempty(defs.studies) || isempty(defs.data_struct))
        errordlg('Nifti format selected. Studies and data_struct must be filled.');
     end
-    if nargin>=33 && ~isempty(varargin{33}) 
-        defs.TR    =   varargin{33};     
+    if nargin>=35 && ~isempty(varargin{35}) 
+        defs.TR    =   varargin{35};     
     end 
+
     
     
     
@@ -430,6 +433,9 @@ else
         defs.NR             =   defs_new.NR;  
         defs.Nrest          =   defs_new.Nrest;   
         defs.Nstim          =   defs_new.Nstim; 
+        defs.onsets         =   defs_new.onsets;   
+        defs.duration       =   defs_new.duration;        
+        defs.cov            =   defs_new.cov;        
         if defs_new.display
             defs.fwe            =   defs_new.fwe;     
             defs.p              =   defs_new.p;  
@@ -588,7 +594,6 @@ switch lower(action)
                u.vox        =   zeros(size(u.p_func,1),3);
                u.fov        =   zeros(size(u.p_func,1),3);               
                u.or         =	repmat({''},size(u.p_func,1),1); 
-               [on off cv]  =   build_on_off(defs);               
                for k=1:size(u.p_func,1)
                    [vox fov]        =   vox_calc(spm_vol(u.p_func{k,:}));
                     or              =   get_or(spm_vol(u.p_func{k,:}));
@@ -596,9 +601,6 @@ switch lower(action)
                     u.fov(k,1:3)    =   fov;
                     u.or{k,1}       =   cellstr(or);
                    u.des_mtx(k,1)   =   struct(       ...
-                            'on',       on,         ...
-                            'off',      off,        ...
-                            'cv',       cv,         ...  
                             'Nrest',    defs.Nrest, ...
                             'Nstim',    defs.Nstim, ...
                             'NR',       defs.NR     ...                        
@@ -854,29 +856,28 @@ for st=1:size(studies,1)
             try                
                 fprintf('____________________________________________________________________________________________\n');
                 fprintf('_______Creating SPM.mat files_______________________________________________________________\n');
-                    if ~defs.inifti
-                        proc	=   [fileparts(fileparts(fileparts(this.p_func(i,:)))) filesep work_dir];
-                        source_path  =   proc;
-                    else
-                        source_path  =   fileparts(this.p_func{i,:});
-                        proc    =   source_path;
-                    end
+                if ~defs.inifti
+                    proc	=   [fileparts(fileparts(fileparts(this.p_func(i,:)))) filesep work_dir];
+                    source_path  =   proc;
+                else
+                    source_path  =   fileparts(this.p_func{i,:});
+                    proc    =   source_path;
+                end
                 fprintf('____%s______\n',proc);
-                [paths,onsets,rp,paths_on,paths_off] = get_design(source_path,this,i, defs);
+                [paths,onsets, duration, rp] = get_design(source_path,this,i, defs);
                 if defs.emask 
                     this.mask{i}=[source_path filesep defs.mask]; 
                 end    
-                this.paths_on{i} =  paths_on;
-                this.paths_off{i}=  paths_off;
                 if ~defs.inifti
                     mask        =   defs.mask{1};
                 else
                     mask        =   this.mask{i};
                 end
+                cov=[];
                 if isfield(defs,'p_ref')
-                    build_SPM (paths, onsets, defs.Nstim, rp, proc,mask,paths_on,paths_off,this.des_mtx(i).cv,defs.an_mode, defs.TR,defs.p_ref); 
+                    build_SPM (paths, onsets, duration, rp, proc, mask, defs.TR, defs.cov, defs.p_ref); 
                 else
-                    build_SPM (paths, onsets, defs.Nstim, rp, proc,mask,paths_on,paths_off,this.des_mtx(i).cv,defs.an_mode, defs.TR); 
+                    build_SPM (paths, onsets, duration, rp, proc, mask, defs.TR, defs.cov); 
                 end
                      cd(source_path);
             catch err

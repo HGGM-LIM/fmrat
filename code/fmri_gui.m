@@ -22,7 +22,7 @@ function varargout = fmri_gui(varargin)
 
 % Edit the above text to modify the response to help fmri_gui
 
-% Last Modified by GUIDE v2.5 28-Aug-2014 10:42:30
+% Last Modified by GUIDE v2.5 16-Jan-2015 18:32:24
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -199,12 +199,15 @@ function togglebutton2_Callback(hObject, eventdata, handles)
 % hObject    handle to togglebutton2 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-if isunix 
-    %d='/opt/PV5.0/data/nmrsu/nmr/'; 
-    d='/media/fMRI_Rata/'; 
-end
-if ispc 
-    d='W:\Proyectos\fMRI\FMRI_RATA\'; 
+d   =   get(handles.edit14,'String');
+if isempty(d)
+    if isunix 
+        %d='/opt/PV5.0/data/nmrsu/nmr/'; 
+        d='/media/fMRI_Rata/'; 
+    end
+    if ispc 
+        d='W:\Proyectos\fMRI\FMRI_RATA\'; 
+    end
 end
 sel_dir = uigetdir(d,'Please select your fMRI directory:');
 if sel_dir ~=0 
@@ -282,6 +285,15 @@ block_ok =      get(handles.edit31,'UserData');
 NR =            str2num(get(handles.edit31,'String'));
 Nrest =         str2num(get(handles.edit2,'String'));
 Nstim =         str2num(get(handles.edit4,'String'));
+adv_dat     =   get(handles.uipanel22,'UserData');
+adv_paradigm=   [];
+adv_cov     =   [];
+if ~isempty(adv_dat) && isfield(adv_dat,'paradigm')
+    adv_paradigm=   adv_dat.paradigm;
+end
+if ~isempty(adv_dat) && isfield(adv_dat,'cov')
+    adv_cov         =   adv_dat.cov;
+end
 anat_seq =      get(handles.edit29,'String');
 func_seq =      get(handles.edit30,'String');
 fwe=            get(handles.radiobutton19,'Value');
@@ -296,7 +308,7 @@ if ~strcmp(action,'all') && ~preserve
 end
     
 
-ok= ['isdir(sel_dir) && (block_ok==1) && ' ...
+ok= ['isdir(sel_dir) && ((block_ok==1) || ~isempty(adv_paradigm)) && ' ...
     '((coreg && (sp~=0))|| (coreg && (~isempty(atlas_dir))) || (~coreg))' ...
     '&& ((custom_resol==0)||((~isempty(rx))&&(~isempty(ry))&&(~isempty(rz))))'...
     '&& ((sm==0)|| (~isnan(sx))) && ~isempty(anat_seq) && ~isempty(func_seq)'];
@@ -304,17 +316,17 @@ if eval(ok)
     set(handles.uipanel4,'BackgroundColor',[0.906,0.906,0.906]);
     set(handles.uipanel8,'BackgroundColor',[0.906,0.906,0.906]);
     fmri(action,sel_dir,sp,atlas_dir,sm,coreg,2,anat_seq,func_seq,NR,Nrest,...
-        Nstim,0,fwe,p,k,custom_atlas,custom_resol,rx,ry,rz,sx,preserve,preprocess,realign, design,estimate, display,0,[],[],rois_dir);
+        Nstim,0,fwe,p,k,custom_atlas,custom_resol,rx,ry,rz,sx,preserve,preprocess,realign, design,estimate, display, adv_paradigm,adv_cov,0,[],[],rois_dir);
 else
     if ~(isdir(sel_dir)) 
         set(handles.edit1,'String','Not valid');
         set(handles.uipanel4,'BackgroundColor',[0.847,0.161,0]);
         set(hObject,'Value',0);
         errordlg('Directory is not valid');
-    elseif block_ok==0
+    elseif (block_ok==0) || ~isstruct(adv_paradigm)
         set(handles.uipanel8,'BackgroundColor',[0.847,0.161,0]);
         set(hObject,'Value',0);  
-        errordlg('Block design is not valid');    
+        errordlg('Block design is not valid'); 
     elseif coreg && (sp==0) && (isempty(atlas_dir))
         set(handles.uipanel14,'BackgroundColor',[0.847,0.161,0]);
         set(hObject,'Value',0);  
@@ -628,6 +640,15 @@ block_ok =      get(handles.edit31,'UserData');
 NR =            str2num(get(handles.edit31,'String'));
 Nrest =         str2num(get(handles.edit2,'String'));
 Nstim =         str2num(get(handles.edit4,'String'));
+adv_dat     =  get(handles.uipanel22,'UserData');
+adv_paradigm=   [];
+adv_cov         =   [];
+if ~isempty(adv_dat) && isfield(adv_dat,'paradigm')
+    adv_paradigm=   adv_dat.paradigm;
+end
+if ~isempty(adv_dat) && isfield(adv_dat,'cov')
+    adv_cov         =   adv_dat.cov;
+end
 anat_seq =      get(handles.edit29,'String');
 func_seq =      get(handles.edit30,'String');
 fwe=            get(handles.radiobutton19,'Value');
@@ -636,7 +657,7 @@ k =             str2num(get(handles.edit25,'String'));
 rois_dir    =   get(handles.edit26,'String');
 
 
-ok= ['isdir(sel_dir) && (block_ok==1) && ' ...
+ok= ['isdir(sel_dir) && ((block_ok==1) || isstruct(adv_paradigm)) && ' ...
     '((coreg && (sp~=0))|| (coreg && (~isempty(atlas_dir))) || (~coreg))' ...
     '&& ((custom_resol==0)||((~isempty(rx))&&(~isempty(ry))&&(~isempty(rz))))' ...
     '&& ((sm==0)||(~isnan(sx))) && ((p>0)|| (p>=1) ||(~isnan(p)))&& ((k>1)||(~isnan(k)))'];
@@ -654,7 +675,7 @@ if eval(ok)
             save(fullpath,'sel_dir','block_ok','NR','Nrest','Nstim',...
                 'anat_seq','func_seq','coreg','custom_atlas','sp',...
                 'atlas_dir','custom_resol','rx','ry','rz','sm','fwe',...
-                'p','k','sx','prep','rea','des','tim','dis','preserve','rois_dir');
+                'p','k','sx','prep','rea','des','tim','dis','preserve','rois_dir','adv_paradigm','adv_cov');
             fclose all;
         catch
             errordlg('Cannot save config file here. Check folder permissions');
@@ -666,7 +687,7 @@ elseif ~(isdir(sel_dir))
         set(handles.uipanel4,'BackgroundColor',[0.847,0.161,0]);
         set(hObject,'Value',0);
         errordlg('Directory is not valid');
-elseif block_ok==0
+elseif (block_ok==0) || ~isstruct(adv_paradigm)
         set(handles.uipanel8,'BackgroundColor',[0.847,0.161,0]);
         set(hObject,'Value',0);  
         errordlg('Block design is not valid');    
@@ -745,6 +766,14 @@ try
     set(handles.edit2,'String',num2str(Nrest));
     set(handles.edit4,'String',num2str(Nstim)); 
     set(handles.edit31,'String',num2str(NR));
+    adv_dat      =  [];
+    if ~isempty(adv_paradigm) 
+        adv_dat.paradigm    =   adv_paradigm;
+    end
+    if ~isempty(adv_cov)    
+        adv_dat.cov    =   adv_cov;        
+    end    
+    set(handles.uipanel22,'UserData',adv_dat);
     set(handles.edit31,'UserData',cast(cast(block_ok,'uint8'),'logical'));
     set(handles.edit29,'String',num2str(anat_seq));
     set(handles.edit30,'String',num2str(func_seq));     
@@ -866,6 +895,30 @@ try
             set(handles.edit31,'UserData',[1]);
             set(handles.uipanel8,'BackgroundColor',[0.867, 0.918, 0.976]);
             set(handles.text7,'BackgroundColor',[0.9,0.7,0.7]);            
+    elseif isstruct(adv_paradigm)
+            set(handles.axes1,'Visible','on');
+            axes(handles.axes1); 
+            xlabel  =   text(0,0,'Images','Visible','off');
+            set(handles.axes1,'XLabel',xlabel);
+            
+            if size(adv_paradigm.duration,1)==1
+               duration     =   repmat(adv_paradigm.duration,1,size(adv_paradigm.onsets,2)); 
+            end
+            y       =   zeros(1,adv_paradigm.NR*1000); 
+            for i=1:size(adv_paradigm.onsets,2)
+                y(adv_paradigm.onsets(i)*1000:((adv_paradigm.onsets(i)+duration(i))*1000))=1;
+            end
+            base    =   [1:adv_paradigm.NR*1000];
+            plot(handles.axes1,base,y,' .b');
+            set(gca,'XTick',adv_paradigm.onsets*1000);
+            lb=strread(num2str(adv_paradigm.onsets),'%s');
+            set(gca,'XTickLabel',lb');
+            
+            xlim(handles.axes1,[1 adv_paradigm.NR*1000]);
+            ylim(handles.axes1,[0 1.25]); 
+            set(handles.edit31,'UserData',[1]);
+            set(handles.uipanel8,'BackgroundColor',[0.867, 0.918, 0.976]);
+            set(handles.text7,'BackgroundColor',[0.9,0.7,0.7]);
     else
         axes(handles.axes1); 
         cla;
@@ -2010,3 +2063,94 @@ function Print_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 printpreview
 printdlg
+
+
+% --- Executes on button press in pushbutton4.
+function pushbutton4_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton4 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+prev        =   get(handles.uipanel22,'UserData');
+if (isfield(prev,'paradigm')) && isstruct(prev.paradigm)
+    pdgm    =   prev.paradigm;
+    pdgm    =   Paradigm(pdgm.NR,pdgm.onsets, pdgm.duration);
+else
+    pdgm    =   Paradigm;
+end
+
+
+if isstruct(pdgm)
+    
+            %pass the data
+            prev.paradigm    =  pdgm;
+            set(handles.uipanel22,'UserData',prev);
+            set(handles.edit31,'UserData',1); %block_ok=1    
+    
+            % DRAW    
+            set(handles.axes1,'Visible','on');
+            axes(handles.axes1); 
+            xlabel  =   text(0,0,'Images','Visible','off');
+            set(handles.axes1,'XLabel',xlabel);
+            
+            if size(pdgm.duration,1)==1
+               duration     =   repmat(pdgm.duration,1,size(pdgm.onsets,2)); 
+            end
+            y       =   zeros(1,pdgm.NR*1000); 
+            for i=1:size(pdgm.onsets,2)
+                y(pdgm.onsets(i)*1000:((pdgm.onsets(i)+duration(i))*1000))=1;
+            end
+            base    =   [1:pdgm.NR*1000];
+            plot(handles.axes1,base,y,' .b');
+            set(gca,'XTick',pdgm.onsets*1000);
+            lb=strread(num2str(pdgm.onsets),'%s');
+            set(gca,'XTickLabel',lb');
+            
+            xlim(handles.axes1,[1 pdgm.NR*1000]);
+            ylim(handles.axes1,[0 1.25]); 
+            set(handles.edit31,'UserData',[1]);
+            set(handles.uipanel8,'BackgroundColor',[0.867, 0.918, 0.976]);
+            set(handles.text7,'BackgroundColor',[0.9,0.7,0.7]);
+else
+            set(handles.axes1,'Visible','on');
+            set(handles.edit31,'UserData',0); %block_ok=0              
+            set(handles.edit2,'String','');
+            set(handles.edit4,'String',''); 
+            set(handles.edit31,'String','');              
+            axes(handles.axes1); 
+            cla
+end
+            
+
+% --- If Enable == 'on', executes on mouse press in 5 pixel border.
+% --- Otherwise, executes on mouse press in 5 pixel border or over pushbutton4.
+function pushbutton4_ButtonDownFcn(hObject, eventdata, handles)
+% hObject    handle to pushbutton4 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in pushbutton5.
+function pushbutton5_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton5 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+prev        =   get(handles.uipanel22,'UserData');
+NR          =   str2num(get(handles.edit31,'String'));
+if isempty(NR) && isfield(prev,'paradigm') && isfield(prev.paradigm,'NR') 
+    NR  =   prev.paradigm.NR;
+    if (isfield(prev,'cov')) && ~isempty(prev.cov)
+        covariates    =   prev.cov;
+        covariates    =   Covariate(covariates, NR);
+    else
+        covariates    =   Covariate([],NR);
+    end
+    prev.cov    =  covariates;
+    set(handles.uipanel22,'UserData',prev);
+elseif ~isempty(NR)
+        covariates    =   Covariate([],NR); 
+        prev.cov    =  covariates;
+        set(handles.uipanel22,'UserData',prev);        
+else
+    errordlg(['You cannot enter the covariates before defining NR. '...
+        'Please enter NR in the corresponding edit box or enter an advanced paradigm through "Advanced" button']);
+end
