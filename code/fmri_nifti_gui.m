@@ -23,7 +23,7 @@ function varargout = fmri_nifti_gui(varargin)
 
 % Edit the above text to modify the response to help fmri_nifti_gui
 
-% Last Modified by GUIDE v2.5 15-Jan-2015 12:51:25
+% Last Modified by GUIDE v2.5 20-Jan-2015 11:53:18
 
 % Begin initialization code - DO NOT EDIT
 global test
@@ -1910,8 +1910,3 @@ else
     errordlg(['You cannot enter the covariates before defining NR. '...
         'Please enter NR in the corresponding edit box or enter an advanced paradigm through "Advanced" button']);
 end
-
-
-
-
-
