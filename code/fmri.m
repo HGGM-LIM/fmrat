@@ -7,11 +7,12 @@ function fmri(varargin)
 % 
 % Bruker call:
 %     fmri(action,sel_dir,sp,atlas_dir,sm,coreg,mode_reg,anat_seq,func_seq,NR,Nrest,...
-%         Nstim,0,fwe,p,k,custom_atlas,custom_resol,rx,ry,rz,sx,preserve,preprocess,realign, design,estimate, display,0,[],[],rois_dir,TR);
+%         Nstim,0,fwe,p,k,custom_atlas,custom_resol,rx,ry,rz,sx,preserve,preprocess,...
+%         realign, design,estimate, display, adv_paradigm,adv_cov,0,[],[],rois_dir);
 % Nifti call:
 %     fmri(action,sel_dir,sp,atlas_dir,sm,coreg,mode_reg,anat_seq,func_seq, ...
 %         NR,Nrest,Nstim,0,fwe,p,k,custom_atlas,custom_resol,rx,ry,rz,sx,preserve,preprocess,...
-%         realign, design,estimate, display,1,studies,data_struct,rois_dir,TR);
+%         realign, design,estimate, display,adv_paradigm, adv_cov,1,studies,data_struct,rois_dir, TR);
 %
 % FLOW DESCRIPTION=========================================================
 %  Automatic processing steps when fmri('all',....) is executed:
@@ -690,6 +691,7 @@ studies         =   fieldnames(data_struct);
                  fprintf(err_file,'Error realigning %s \r\n Acq %s:\r\n %s \r\n\r\n',...
                      char(studies{st}),func,getReport(err));
                  fclose(err_file);
+                 fclose('all');
               end
             end
             eval(['defs.data_struct.' char(studies{st}) '=this;']);  
@@ -728,7 +730,7 @@ if defs.coreg
             for i=1:size(this.p_func,1)
                  try 
                      fprintf('____________________________________________________________________________________________\n');
-                     fprintf('____________________________________(Coreg to fmri space)___________________________________\n'); 
+                     fprintf('____________________________________(Warping to atlas space)___________________________________\n'); 
                     if ~defs.inifti
                         proc        =	[fileparts(fileparts(fileparts(this.p_func(i,:)))) filesep work_dir];
                         source_path      =	proc;
@@ -761,6 +763,7 @@ if defs.coreg
                      end                    
                     fprintf(err_file,'Error coregistering masks %s \r\n Acq %s:\r\n %s\r\n\r\n',char(studies{st}),func,getReport(err));
                     fclose(err_file);
+                    fclose('all');                    
                  end                  
             end
             
@@ -772,7 +775,10 @@ if defs.coreg
         if ~defs.inifti
             try
                 cd(proc);
-                ref                 =   dir(['wr' defs.im_name '*0001.nii']);  % ROIs must have same dims as warped images
+                ref         =   dir(['wr*' defs.im_name '*0001.nii']);  % ROIs must have same dims as warped images
+                if isempty(ref)
+                    ref         =   dir(['w' defs.im_name '*0001.nii']);  % ROIs must have same dims as warped images        
+                end                
                 mask                =   defs.mask;
                 outnames            =   change_spacen(char(mask),ref.name,1);
                 defs.mask(1)        =    cellstr(outnames);                    
@@ -823,6 +829,7 @@ for st=1:size(studies,1)
              end             
              fprintf(err_file,'Error smoothing %s \r\n Acq %s:\r\n %s\r\n\r\n',char(studies{st}),func,getReport(err));
              fclose(err_file);
+             fclose('all');              
             end
             end
     
@@ -889,6 +896,7 @@ for st=1:size(studies,1)
                  end                
                 fprintf(err_file,'Error creating SPM.mat %s \r\n Acq %s:\r\n %s\r\n\r\n',char(studies{st}),func,getReport(err));
                 fclose(err_file);
+                fclose('all');                 
             end
             end
             
@@ -948,6 +956,7 @@ for st=1:size(studies,1)
              end
              fprintf(err_file,'Error estimating %s \r\n Acq %s:\r\n %s\r\n\r\n',char(studies{st}),func,getReport(err));
              fclose(err_file);
+             fclose('all');              
             end  
             end
 
@@ -1177,6 +1186,7 @@ for st=1:size(studies,1)
        end
        fprintf(err_file,'Error displaying %s \r\n Acq %s:\r\n %s\r\n\r\n',char(studies{st}),func,getReport(err));
        fclose(err_file);
+       fclose('all');        
         continue;
     end   
     end % End p_func loop
@@ -1197,7 +1207,6 @@ fprintf('CPU time in seconds: %s\r\n', num2str(t1));
 end
 
 end
-
 
 fclose('all');
 

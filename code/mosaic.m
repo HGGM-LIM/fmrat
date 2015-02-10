@@ -351,6 +351,7 @@ if nSPM>0
     c = SPMVol(1,1).M*c;
     c = c(1:3,:)';
     bbox = [min(c); max(c)]*100;
+
 else
     A = Vbg.mat;
     bb = [[1 1 1]; VbgDim];
@@ -442,8 +443,8 @@ for n = 1:nImgs
         
         case 1             % SAGITTAL
             
-            T0 = [0  1 0    -bbox(1,2)+1  ;...
-                    0  0 1    -bbox(1,3)+1  ;...
+            T0 = [0  1 0    -bbox(1,2)  ;...
+                    0  0 1    -bbox(1,3)  ;...
                     1  0 0    -L(1)         ;...
                     0  0 0     1];
             
@@ -451,8 +452,8 @@ for n = 1:nImgs
 
         case 2             % CORONAL
             
-            T0 = [1 0 0    -bbox(1,1)+1  ;...
-                    0 0 1    -bbox(1,3)+1  ;...
+            T0 = [1 0 0    -bbox(1,1)  ;...
+                    0 0 1    -bbox(1,3)  ;...
                     0 1 0    -L(2)         ;...
                     0 0 0     1];  
             
@@ -460,8 +461,8 @@ for n = 1:nImgs
             
         case 3             % TRANSAXIAL
             
-            T0 = [1  0  0    -bbox(1,1)+1  ;...
-                    0  1  0    -bbox(1,2)+1  ;...
+            T0 = [1  0  0    -bbox(1,1)  ;...
+                    0  1  0    -bbox(1,2)  ;...
                     0  0  1    -L(3)         ;...
                     0  0  0     1     ];            
             i = 1;   j = 2;
@@ -473,8 +474,8 @@ for n = 1:nImgs
 %    matr=diag([0.01,0.01,0.01,1])\SPMExtras(1).M;    
     kk          =   inv(T0*matr);                %*************************************************************************************   
     kk(3,4)     =   kk(3,4)+1;              %******************************************************************************************
-    D           =   spm_slice_vol(Vbg, kk, sliceDims, 1);
-    if any(D(:)~=0)
+    Dbg           =   spm_slice_vol(Vbg, kk, sliceDims, 1);
+    if any(Dbg(:)~=0)
         if nz_start == 0 
             nTalL       =   TalL(orCode);
             nz_start    =   n; 
@@ -517,6 +518,10 @@ spm_figure('Clear');
 %     cmap(1,:) = [1 1 1];   % set first color slot (bg color) to white
 % end
 figure(Fgraph)
+set(Fgraph,'PaperUnits','centimeters');
+set(Fgraph,'Position',[200 200 1000 700]);
+set(Fgraph,'PaperOrientation','landscape')
+set(Fgraph,'PaperPositionMode','auto')
 colormap(cmap);
 
 %----------------------------------------------------------------------------
@@ -543,6 +548,35 @@ mRow    =   0;
 mCol    =   0;
 
 
+%--------------------------------------------------------------------------
+% Set titles
+%--------------------------------------------------------------------------
+figure(Fgraph);
+axes('Position',[0 0 1 1]);
+sc      =   spm('FontScale'); 
+if nSPM>0
+    text(0.03,top+0.03 , ['T MAP'], 'Units','normalized',...
+    'FontSize', 10*sc,'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
+    text(0.03,top , ['Functional: ' SPMVol(1,1).swd filesep 'SPM.mat'], 'Units','normalized',...
+        'FontSize', 6*sc,'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');        
+end
+text(0.03,top-0.03 , ['Background: ' Vbg.fname ], 'Units','normalized',...
+'FontSize', 6*sc,'HorizontalAlignment', 'left', 'VerticalAlignment', 'top'); 
+axis off
+
+figure(hZmap);
+axes('Position',[0 0 1 1]);
+sc      =   spm('FontScale'); 
+if nSPM>0
+    text(0.03,top+0.03 , ['Z MAP'], 'Units','normalized',...
+    'FontSize', 10*sc,'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
+    text(0.03,top , ['Functional: ' SPMVol(1,1).swd filesep 'SPM.mat'], 'Units','normalized',...
+        'FontSize', 6*sc,'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');        
+end
+text(0.03,top-0.03 , ['Background: ' Vbg.fname ], 'Units','normalized',...
+'FontSize', 6*sc,'HorizontalAlignment', 'left', 'VerticalAlignment', 'top'); 
+axis off
+
 
 %-------------------------------------------------------------------------
 % Loop over images in Mosaic
@@ -565,8 +599,8 @@ for n = 1:nImgs
         
         case 1             % SAGITTAL
             
-            T0 = [0  1 0    -bbox(1,2)+1  ;...
-                    0  0 1    -bbox(1,3)+1  ;...
+            T0 = [0  1 0    -bbox(1,2)  ;...
+                    0  0 1    -bbox(1,3)  ;...
                     1  0 0    -L(1)         ;...
                     0  0 0     1];
             
@@ -574,8 +608,8 @@ for n = 1:nImgs
 
         case 2             % CORONAL
             
-            T0 = [1 0 0    -bbox(1,1)+1  ;...
-                    0 0 1    -bbox(1,3)+1  ;...
+            T0 = [1 0 0    -bbox(1,1)  ;...
+                    0 0 1    -bbox(1,3)  ;...
                     0 1 0    -L(2)         ;...
                     0 0 0     1];  
             
@@ -583,8 +617,8 @@ for n = 1:nImgs
             
         case 3             % TRANSAXIAL
             
-            T0 = [1  0  0    -bbox(1,1)+1  ;...
-                    0  1  0    -bbox(1,2)+1  ;...
+            T0 = [1  0  0    -bbox(1,1)  ;...
+                    0  1  0    -bbox(1,2)  ;...
                     0  0  1    -L(3)         ;...
                     0  0  0     1     ];            
             i = 1;   j = 2;
@@ -762,89 +796,77 @@ for n = 1:nImgs
     %----------------------------------------------------------------
     
     if nSPM == 2 
+
+        
+        
+        %===============================T Values===============================
         i       =   find(iSPM>193);
         iSPM(i) =   193;
         i       =   find(iSPM);
         Dbg1    =   Dbg;
         Dbg1(i) =   iSPM(i);
         
+        
+        if gcf ~= Fgraph; figure(Fgraph); end;
+
+        axes('Position',[mCol*(w+fHoriz) top-(mRow+1)*(h+fVert)-(1.5*fVert) w h])
+
+        Dbg1    =   rot90(Dbg1);
+        Dbg1    =   fliplr(Dbg1);
+        himg    =   image(Dbg1);
+        axis image; 
+        sc      =   spm('FontScale');    
+        axis off
+
+
+    %     if (method_f_exists && method_bg_exists)
+        Lstr = sprintf('%s %0.3g mm', xLbl(orCode,:), TalL(orCode));%**************************************************************************
+        text(.5, -.01*h, Lstr, 'Units', 'normalized','FontSize', 7*sc,'HorizontalAlignment', 'center', 'VerticalAlignment', 'top');
+    %     end
+        hold on        
+
+
+     %===============================Z Values===============================    
         j       =   find(jSPM>193);
         jSPM(j) =   193;
         j       =   find(jSPM);
-        Dbg2    =   Dbg;
-        Dbg2(j) =   jSPM(j);        
+        Dbg1    =   Dbg;
+        Dbg1(j) =   jSPM(j);  
+        
+        figure(hZmap);    
+        axes('Position',[mCol*(w+fHoriz) top-(mRow+1)*(h+fVert)-(1.5*fVert) w h])
+
+        Dbg1    =   rot90(Dbg1);
+        Dbg1    =   fliplr(Dbg1);
+        himg    =   image(Dbg1);
+        axis image; 
+        sc      =   spm('FontScale');    
+        axis off
+
+    %     if (method_f_exists && method_bg_exists)
+        Lstr = sprintf('%s %0.3g mm', xLbl(orCode,:), TalL(orCode));%**************************************************************************
+        text(.5, -.01*h, Lstr, 'Units', 'normalized','FontSize', 7*sc,'HorizontalAlignment', 'center', 'VerticalAlignment', 'top');
+    %     end
+
+        hold on        
+        
+      
     else
         i       =   find(iSPM);
+        Dbg1    =   Dbg;
         Dbg1(i) =   nGrays + iSPM(i);
         j       =   find(jSPM);
+        Dbg2    =   Dbg;
         Dbg2(j) =   nGrays + jSPM(j);
     end
     
-    %===============================T Values===============================
-    if gcf ~= Fgraph; figure(Fgraph); end;
+
     
-    axes('Position',[mCol*(w+fHoriz) top-(mRow+1)*(h+fVert)-(1.5*fVert) w h])
-    
-    Dbg1    =   rot90(Dbg1);
-    Dbg1    =   fliplr(Dbg1);
-    himg    =   image(Dbg1);
-    axis image; 
-    sc      =   spm('FontScale');    
-    
-    %***********************************************************************************************************************************
-    if (mRow==0)&&(mCol==0)
-        if nSPM>0
-        text(0.0,1.35 , ['T MAP'], 'Units','normalized',...
-            'FontSize', 10*sc,'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');  
-            text(0.0,1.2 , ['Functional: ' SPMVol(1,1).swd filesep 'SPM.mat'], 'Units','normalized',...
-            'FontSize', 6*sc,'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');        
-        end
-        text(0.0,1.12 , ['Background: ' Vbg.fname ], 'Units','normalized',...
-            'FontSize', 6*sc,'HorizontalAlignment', 'left', 'VerticalAlignment', 'top'); 
-    end
-    %***********************************************************************************************************************************
-    axis off;
-    
-%     if (method_f_exists && method_bg_exists)
-%     Lstr = sprintf('%s %0.3g mm', xLbl(orCode,:), TalL_draw);%**************************************************************************
-%     text(.5, -.01*h, Lstr, 'Units', 'normalized','FontSize', 7*sc,'HorizontalAlignment', 'center', 'VerticalAlignment', 'top');
-%     end
-    hold on
-    
-    %===============================Z Values===============================    
-    figure(hZmap);    
-    axes('Position',[mCol*(w+fHoriz) top-(mRow+1)*(h+fVert)-(1.5*fVert) w h])
-    
-    Dbg2    =   rot90(Dbg2);
-    Dbg2    =   fliplr(Dbg2);
-    himg    =   image(Dbg2);
-    axis image; 
-    sc      =   spm('FontScale');    
-    
-    %******Header**********************************************************
-    if (mRow==0)&&(mCol==0)
-        if nSPM>0
-        text(0.0,1.35 , ['Z MAP'], 'Units','normalized',...
-            'FontSize', 10*sc,'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');              
-        text(0.0,1.2 , ['Functional: ' SPMVol(1,1).swd filesep 'SPM.mat'], 'Units','normalized',...
-            'FontSize', 6*sc,'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');        
-        end
-        text(0.0,1.12 , ['Background: ' Vbg.fname ], 'Units','normalized',...
-            'FontSize', 6*sc,'HorizontalAlignment', 'left', 'VerticalAlignment', 'top'); 
-    end
-    %**********************************************************************
-    axis off;
-    
-%     if (method_f_exists && method_bg_exists)
-%     Lstr = sprintf('%s %0.3g mm', xLbl(orCode,:), TalL_draw);%*************
-%     text(.5, -.01*h, Lstr, 'Units', 'normalized','FontSize', 7*sc,'HorizontalAlignment', 'center', 'VerticalAlignment', 'top');
-%     end
-    
-    hold on
+   
     
     
     
-    if (method_f_exists && method_bg_exists) TalL_draw=TalL_draw+spacing;    end%*******************************************************
+%     if (method_f_exists && method_bg_exists) TalL_draw=TalL_draw+spacing;    end%*******************************************************
     TalL(orCode)    =   TalL(orCode) + spacing;  % increment by user-specifed spacing.
     L               =   VbgVox.*(TalL./VbgVox)*100;%************************************************************************************
     
@@ -865,14 +887,14 @@ for n = 1:nImgs
     
     
 end;    %  endfor nImgs
-clear Dbg1 Dbg2 Dbg iSPM jSPM D T iSPMo jSPMo i
+clear Dbg1 Dbg2 Dbg iSPM jSPM Dbg T iSPMo jSPMo i
 
 %--------------------------------------
 %  Tmap: add colorbar(s) beneath tiles
 %--------------------------------------
 if gcf ~= Fgraph; figure(Fgraph); end; hold off
 x   =   [0.02 .27 .52 .77];
-y   =   3*fVert*[1 1 1 1];
+y   =   2*fVert*[1 1 1 1];
 
 for n = 1:nSPM
     sc      =   spm('FontScale');    
@@ -883,11 +905,11 @@ for n = 1:nSPM
     image([s1:s2]);
     ZminStr =   sprintf('%.2f', min(SPMVol(n).Z));
     ZmaxStr =   sprintf('%.2f', max(SPMVol(n).Z));
-    text(0.0, -fVert, ZminStr, 'Units','normalized', 'FontSize', 7*sc,...
+    text(0.0, -0.8*fVert, ZminStr, 'Units','normalized', 'FontSize', 6*sc,...
         'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');    
-    text(0.5, -fVert, SPMVol(n).title, 'Units','normalized', 'FontSize', 7*sc,...
+    text(0.5, -0.8*fVert, SPMVol(n).title, 'Units','normalized', 'FontSize', 6*sc,...
         'HorizontalAlignment', 'center', 'VerticalAlignment', 'top');    
-    text(1.0, -fVert, ZmaxStr, 'Units','normalized', 'FontSize', 7*sc,...
+    text(1.0, -0.8*fVert, ZmaxStr, 'Units','normalized', 'FontSize', 6*sc,...
         'HorizontalAlignment', 'right', 'VerticalAlignment', 'top');
     axis off;
     
@@ -928,7 +950,7 @@ end
 %--------------------------------------
 figure(hZmap); hold off
 x   =   [0.02 .27 .52 .77];
-y   =   3*fVert*[1 1 1 1];
+y   =   2*fVert*[1 1 1 1];
 
 for n = 1:nSPM
     sc      =   spm('FontScale');    
@@ -939,11 +961,11 @@ for n = 1:nSPM
     image([s1:s2]);
     ZminStr =   sprintf('%.2f', min(SPMVol(n).Znorm));
     ZmaxStr =   sprintf('%.2f', max(SPMVol(n).Znorm));
-    text(0.0, -fVert, ZminStr, 'Units','normalized', 'FontSize', 7*sc,...
+    text(0.0, -0.8*fVert, ZminStr, 'Units','normalized', 'FontSize', 6*sc,...
         'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');    
-    text(0.5, -fVert, SPMVol(n).title, 'Units','normalized', 'FontSize', 7*sc,...
+    text(0.5, -0.8*fVert, SPMVol(n).title, 'Units','normalized', 'FontSize', 6*sc,...
         'HorizontalAlignment', 'center', 'VerticalAlignment', 'top');    
-    text(1.0, -fVert, ZmaxStr, 'Units','normalized', 'FontSize', 7*sc,...
+    text(1.0, -0.8*fVert, ZmaxStr, 'Units','normalized', 'FontSize', 6*sc,...
         'HorizontalAlignment', 'right', 'VerticalAlignment', 'top');
     axis off;
     
@@ -989,13 +1011,11 @@ if ~defs.inifti
 else
     [path nam ext]  =   fileparts(fileparts(path_SPM));
 end
-set(Fgraph,'Position',[320 40 630 500]);
-set(Fgraph,'PaperPositionMode','auto');
 if nargin~=0
-    print(Fgraph,'-dtiff','-r100',[path filesep 'results_' nam '_' num2str(fwe) '_p_' ...
+    print(Fgraph,'-dtiff','-r300',[path filesep 'results_' nam '_' num2str(fwe) '_p_' ...
         regexprep(num2str(p),'\.','_') '_k_' num2str(kl) '.tif'])
 else
-    print(Fgraph,'-dtiff','-r100',[path filesep 'results_' nam '_manual_' num2str(fwe) '_p_' ...
+    print(Fgraph,'-dtiff','-r300',[path filesep 'results_' nam '_manual_' num2str(fwe) '_p_' ...
         regexprep(num2str(p),'\.','_') '_k_' num2str(kl) '.tif'])
 end
 %--------------------------------------------------------------------------
@@ -1005,13 +1025,11 @@ if ~defs.inifti
 else
     [path nam ext]  =   fileparts(fileparts(path_SPM));
 end
-set(hZmap,'Position',[320 40 630 500]);
-set(hZmap,'PaperPositionMode','auto');
 if nargin~=0
-    print(hZmap,'-dtiff','-r100',[path filesep 'Zresults_' nam '_' num2str(fwe) '_p_' ...
+    print(hZmap,'-dtiff','-r300',[path filesep 'Zresults_' nam '_' num2str(fwe) '_p_' ...
         regexprep(num2str(p),'\.','_') '_k_' num2str(kl) '.tif'])
 else
-    print(hZmap,'-dtiff','-r100',[path filesep 'Zresults_' nam '_manual_' num2str(fwe) '_p_' ...
+    print(hZmap,'-dtiff','-r300',[path filesep 'Zresults_' nam '_manual_' num2str(fwe) '_p_' ...
         regexprep(num2str(p),'\.','_') '_k_' num2str(kl) '.tif'])
 end
 

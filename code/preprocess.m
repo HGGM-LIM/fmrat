@@ -256,6 +256,7 @@ if ~defs.inifti
          fprintf(err_file,'Error Preprocessing %s \r\n Acq %s \r\n\r\n',...
                      this.paths_func,getReport(err));
         fclose(err_file);
+         fclose('all');        
     end 
     
 

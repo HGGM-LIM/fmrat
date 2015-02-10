@@ -158,47 +158,82 @@ switch mode_reg
     [bbanat vxanat]     =    bbvox_from_V(V_anat);
     
     %___________FMRI TO ANAT_______________________________________________
-    flags       =   defaults.coreg.estimate;
-    flags.sep   =   [abs(vxanat(1))*2 abs(vxanat(1))];
-    flags.fwhm  =   [abs(vxanat(1))*3 abs(vxanat(1))*3];
-    x           =   spm_coreg(V_anat,V_mean,flags);
-    Affine      =   V_mean.mat\spm_matrix(x(:)')*V_anat.mat;
-    Affine1     =   Affine;
-    Tr          =   [];
-    cd(proc);
-    VG          =   V_anat; 
-    VF          =   V_mean;
-    save coreg1.mat Affine VG VF Tr
+        flags       =   defaults.coreg.estimate;
+        flags.sep   =   [abs(vxanat(1))*5 abs(vxanat(1))*3];
+        flags.fwhm  =   [abs(vxanat(1))*4 abs(vxanat(1))*4];
+        x           =   spm_coreg(V_anat,V_mean,flags);
+        Affine      =   V_mean.mat\spm_matrix(x(:)')*V_anat.mat;
+        Tr          =   [];
+        cd(proc);
+        VG          =   V_anat; 
+        VF          =   V_mean;
+        save coreg1.mat Affine VG VF Tr
+        %_______________________________________
+         fprintf('Affine registration FMRI TO ANAT ...\n');
+        flags.WF        =   [];
+        flags.WG        =   [];
+        flags.sep       =   flags.sep(1);
+        flags.regtype   =   'subj';
+        flags.debug     =   0;
+        [xaff1,scal]    =   spm_affreg(V_anat,V_mean,flags,inv(spm_matrix(x(:)')),1);  
+        Affine      =   V_mean.mat\inv(xaff1)*V_anat.mat;
+        Affine1     =   Affine;
+        Tr          =   [];
+        cd(proc);
+        VG          =   V_anat; 
+        VF          =   V_mean;
+        save affreg1.mat Affine VG VF Tr        
+        %_______________________________________        
 
 
     %___________ANAT TO ATLAS______________________________________________
-    flags       =   defaults.coreg.estimate;
-    flags.sep   =   [abs(vxanat(1))*2 abs(vxanat(1))];
-    flags.fwhm  =   [abs(vxanat(1))*3 abs(vxanat(1))*3];
-    x           =   spm_coreg(V_atlas,V_anat,flags);
-    Affine      =   V_anat.mat\spm_matrix(x(:)')*V_atlas.mat;
-    Affine2     =   Affine;
-    Tr          =   [];
-    cd(proc);
-    VG          =   V_atlas; 
-    VF          =   V_anat;
-    save coreg2.mat Affine VG VF Tr
+        flags       =   defaults.coreg.estimate;
+        flags.sep   =   [abs(vxanat(1))*5 abs(vxanat(1))*3];
+        flags.fwhm  =   [abs(vxanat(1))*4 abs(vxanat(1))*4];
+        x           =   spm_coreg(V_atlas,V_anat,flags);
+        Affine      =   V_anat.mat\spm_matrix(x(:)')*V_atlas.mat;
+        Tr          =   [];
+        cd(proc);
+        VG          =   V_atlas; 
+        VF          =   V_anat;
+        save coreg2.mat Affine VG VF Tr
+        %_______________________________________
+         fprintf('Affine registration ANAT TO ATLAS ...\n');        
+        flags.WF        =   [];
+        flags.WG        =   [];
+        flags.sep       =   flags.sep(1);
+        flags.regtype   =   'subj';
+        flags.debug     =   0;
+        [xaff2,scal]    =   spm_affreg(V_atlas,V_anat,flags,inv(spm_matrix(x(:)')),1);  
+        Affine      =   V_anat.mat\inv(xaff2)*V_atlas.mat;
+        Affine2     =   Affine;
+        Tr          =   [];
+        cd(proc);
+        VG          =   V_atlas; 
+        VF          =   V_anat;
+        save affreg2.mat Affine VG VF Tr        
+        %_______________________________________           
+        
     
     %___________FMRI TO ATLAS______________________________________________
     Affine  =   Affine1*Affine2;
     VF      =   V_mean; 
     VG      =   V_atlas;    
-    save total_coreg.mat Affine VG VF Tr
+    save total_affine.mat Affine VG VF Tr
  
     %___________WRITING WARPED IMAGES______________________________________
-    [vxanat anat_fov]     =   vox_calc(V_anat);
+     fprintf('Writing warped images ...\n');     
+    [vxfun func_fov]     =   vox_calc(V_mean);
     dnrm                =   defaults.normalise;
     dnrm.write.vox      =   [rx,ry,rz];
-%     dnrm.write.bb       =   ([-anat_fov(1)*3/4 anat_fov(1)*3/4; ...
+        dnrm.write.bb   =   ([-func_fov(1) func_fov(1); ...
+                                -func_fov(2) func_fov(2); ...
+                                -func_fov(3) func_fov(3)]');
+    %     dnrm.write.bb       =   ([-anat_fov(1)*3/4 anat_fov(1)*3/4; ...
 %                                 -anat_fov(2)*3/4 anat_fov(2)*3/4; ...
 %                                 -anat_fov(3)*3/4 anat_fov(3)*3/4]'); 
-     dnrm.write.bb       =  bbanat;
-    spm_write_sn(V_mean.fname, [proc filesep 'total_coreg.mat'], dnrm.write);
+%      dnrm.write.bb       =  bbanat*1.5;
+    spm_write_sn(V_mean.fname, [proc filesep 'total_affine.mat'], dnrm.write);
 
     if defs.realign
         filt        =   ['^r' defs.im_name '((?!\_s).)*$'];
@@ -209,21 +244,21 @@ switch mode_reg
     end
 %     files   =   sel_files(fileparts(V_mean.fname),['r' defs.im_name '*.nii']);
     for m=1:size(files,1)
-        spm_write_sn(deblank(files(m,:)), [proc filesep 'total_coreg.mat'], dnrm.write);
+        spm_write_sn(deblank(files(m,:)), [proc filesep 'total_affine.mat'], dnrm.write);
     end    
     
     
     %___________WRITING/OUTPUT_ANAT_TO ATLAS_______________________________
-    
+    [vxanat anat_fov]     =   vox_calc(V_anat);
     [route nam ext]     =   fileparts(anat); 
     if strcmp(nam,'2dseq') 
         dnrm            =   defaults.normalise;
         dnrm.write.vox  =   vxanat;
-%         dnrm.write.bb   =   ([-atlas_fov(1)*3/4 atlas_fov(1)*3/4; ...
-%                                 -atlas_fov(2)*3/4 atlas_fov(2)*3/4; ...
-%                                 -atlas_fov(3)*3/4 atlas_fov(3)*3/4]');   
-        dnrm.write.bb   =   bbanat;
-        spm_write_sn(V_anat.fname, [proc filesep 'coreg2.mat'], dnrm.write);      
+        dnrm.write.bb   =   ([-anat_fov(1) anat_fov(1); ...
+                                -anat_fov(2) anat_fov(2); ...
+                                -anat_fov(3) anat_fov(3)]');   
+%         dnrm.write.bb   =   bbanat*1.5;
+        spm_write_sn(V_anat.fname, [proc filesep 'affreg2.mat'], dnrm.write);      
         [route nam ext] =   fileparts(anat);    
         p_anat          =   [route filesep 'w' nam ext];
         new_path        =   [proc filesep 'w' nam ext];    
@@ -239,7 +274,12 @@ switch mode_reg
     
     %____________RESAMPLE_BRAIN_AND_ROIS_MASKS_____________________________    
     cd(proc);
-    ref         =   dir(['wr' defs.im_name '*0001.nii']);  % ROIs must have same dims as warped images
+    
+    ref         =   dir(['wr*' defs.im_name '*0001.nii']);  % ROIs must have same dims as warped images
+	if isempty(ref)
+        ref         =   dir(['w' defs.im_name '*0001.nii']);  % ROIs must have same dims as warped images        
+    end    
+    
     if defs.inifti 
         mask        =   char(this.mask(ff));  % If Nifti, several masks
     end

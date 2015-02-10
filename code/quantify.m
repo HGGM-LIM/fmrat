@@ -77,15 +77,15 @@ for n=1:nSPM
             mask=mask.*div;
             ind=find(mask);[im,jm,km]=ind2sub(size(mask),ind);mask=mask(ind);                
         catch err
-            if ~isempty(mask) && ~isempty(div) && sum(size(roi_x)-size(div))~=0
-               fid  =   fopen(err_path,'a+');
-               fprintf(fid,'Error quantifying SPM: %s. Mask.nii dimensions do not match the SPM images dimensions\r\n\r\n',in.path_SPM);
-               fclose(fid);
-            else
+%             if ~isempty(mask) && ~isempty(div) && sum(size(roi_x)-size(div))~=0
+%                fid  =   fopen(err_path,'a+');
+%                fprintf(fid,'Error quantifying SPM: %s. Mask.nii dimensions do not match the SPM images dimensions\r\n\r\n',in.path_SPM);
+%                fclose(fid);
+%             else
                fid  =   fopen(err_path,'a+');
                fprintf(fid,'Error quantifying SPM: %s. Mask.nii might not be found\r\n\r\n',in.path_SPM);
                fclose(fid);
-            end
+%             end
         end
         
         % Mask user ROIs

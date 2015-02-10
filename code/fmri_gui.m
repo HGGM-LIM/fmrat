@@ -316,7 +316,8 @@ if eval(ok)
     set(handles.uipanel4,'BackgroundColor',[0.906,0.906,0.906]);
     set(handles.uipanel8,'BackgroundColor',[0.906,0.906,0.906]);
     fmri(action,sel_dir,sp,atlas_dir,sm,coreg,2,anat_seq,func_seq,NR,Nrest,...
-        Nstim,0,fwe,p,k,custom_atlas,custom_resol,rx,ry,rz,sx,preserve,preprocess,realign, design,estimate, display, adv_paradigm,adv_cov,0,[],[],rois_dir);
+        Nstim,0,fwe,p,k,custom_atlas,custom_resol,rx,ry,rz,sx,preserve,preprocess,...
+        realign, design,estimate, display, adv_paradigm,adv_cov,0,[],[],rois_dir);
 else
     if ~(isdir(sel_dir)) 
         set(handles.edit1,'String','Not valid');

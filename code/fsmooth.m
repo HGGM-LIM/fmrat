@@ -72,7 +72,7 @@ end
         if ~isempty(array)
             vol                 =   spm_vol(all(k,:));
             image               =   spm_read_vols(vol);
-             [direct nam ext v] =   fileparts(all(k,:));
+             [direct nam ext] =   fileparts(all(k,:));
              vol.fname          =   [direct filesep nam '_s' ext];
             spm_smooth(image, vol, defs.kernel, vol.dt(1));
 

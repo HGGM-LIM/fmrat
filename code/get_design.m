@@ -3,7 +3,7 @@ function [files,onsets, duration,rp] = get_design (source_path,this,ff, defs)
 % FUNCTION get_design.m 
 % Selects the full paths of the images required for the analysis according to the
 % paradigm values in "defs" structure (Nrest, Nstim, NR) and according to the pre-processing
-% steps taken.
+% steps taken. If Advanced design is used, onsets and duration are set.
 
 global err_path
 
