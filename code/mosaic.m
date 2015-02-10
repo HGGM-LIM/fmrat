@@ -291,7 +291,7 @@ try fid2 = fopen(deblank(path_method.name), 'r');
     method_f_exists         =   1;
     fclose(fid2);
 catch
-    orient_f='axial';rout_f='L_R'; gap_f='0.1';
+    orient_f='axial';rout_f='L_R'; gap_f='0';
 end
 cd(fileparts(path_SPM));
     a           =   repmat(orient_f,3,1);
@@ -577,7 +577,6 @@ text(0.03,top-0.03 , ['Background: ' Vbg.fname ], 'Units','normalized',...
 'FontSize', 6*sc,'HorizontalAlignment', 'left', 'VerticalAlignment', 'top'); 
 axis off
 
-
 %-------------------------------------------------------------------------
 % Loop over images in Mosaic
 %-------------------------------------------------------------------------
@@ -593,8 +592,8 @@ for n = 1:nImgs
     % get the slice at location, L, of the background image
     %----------------------------------------------------------------------------
   
-%    L      = VbgVox.*round(TalL./VbgVox);
-    L      =    VbgVox.*(TalL./VbgVox)*100;    %********************************************************************************************
+   L      = VbgVox.*round(TalL./VbgVox)*100;
+%     L      =    VbgVox.*(TalL./VbgVox)*100;    %********************************************************************************************
     switch orCode
         
         case 1             % SAGITTAL
@@ -688,6 +687,7 @@ for n = 1:nImgs
         %  ----------------------------------------------------------------
         if isempty(SPMVol(k).XYZ) continue;    end
         
+       
         rcp         =   round(SPMVol(k).XYZ);
         dim         =   max(rcp, [], 2)';
         off         =   rcp(1,:) + dim(1)*(rcp(2,:)-1 + dim(2)*(rcp(3,:)-1));

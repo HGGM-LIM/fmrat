@@ -707,7 +707,7 @@ studies         =   fieldnames(data_struct);
 
     case 'coreg'
 %--------------------------------------------------------------------------
-%   COREGISTER ATLAS AND MASKS TO MEAN FUNCTIONAL IMAGE
+%   COREGISTER ATLAS AND MASKS TO MEAN FUNCTIONAL IMAGE (COREG+ AFFINE)
 %--------------------------------------------------------------------------
 cd(t);
 load Data.mat
@@ -745,7 +745,7 @@ if defs.coreg
                          this.p_ref{i}=[pth filesep nam ext];
                      end
                      lastwarn('');
-                     [REF this defs]    =   brain_to_fmri(source_path,this,i, defs);                       
+                     [REF this defs]    =   normalize_fmri(source_path,this,i, defs);                       
                      [msgstr, msgid]    =   lastwarn
                      if strcmp(msgstr,'Too many optimisation iterations')
                          err_file       =   fopen(err_path,'a+');             

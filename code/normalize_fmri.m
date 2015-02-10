@@ -1,10 +1,9 @@
-function [REF this defs]=brain_to_fmri(varargin)
-
-% FUNCTION brain_to_fmri.m 
-% Coregisters functional images to the atlas space. Writes warped images
+function [REF this defs]=normalize_fmri(varargin)
+% FUNCTION normalize_fmri.m 
+% Normalizes functional images to the atlas space. Writes warped images
 % and ROIs with user-defined resolution.
 %
-% Steps of the multiresolution registration and the smoothing FHWM of the
+% Steps of the registrations and the smoothing FHWM of the
 % joint histogram are chosen relative to the resolution of the anatomical
 % image.
 
