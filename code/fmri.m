@@ -1011,13 +1011,12 @@ for st=1:size(studies,1)
 
     %get rois
     rois    =   {};
-    if defs.coreg && ~isempty(this.rois)
+    if ~isempty(this.rois)
         rois    =   this.rois{i};
-    elseif defs.coreg && isempty(this.rois)
-       fprintf(err_file,'Error reading warped ROIs. %s \r\n Acq %s:\r\n %s\r\n\r\n',char(studies{st}),char(this.pfunc{i}));
-       fclose(err_file); 
     else
         rois    =   defs.rois;
+       fprintf(err_file,'Error reading warped ROIs. Trying with unwarped %s \r\n Acq %s:\r\n %s\r\n\r\n',char(studies{st}),char(this.pfunc{i}));
+       fclose(err_file);         
     end
     
     %__GET SPM STRUCT______________________________________________________
