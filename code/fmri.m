@@ -1011,11 +1011,17 @@ for st=1:size(studies,1)
 
     %get rois
     rois    =   {};
-    if ~isempty(this.rois)
+    if isfield(this, 'rois') && ~isempty(this.rois)
         rois    =   this.rois{i};
     else
         rois    =   defs.rois;
-       fprintf(err_file,'Error reading warped ROIs. Trying with unwarped %s \r\n Acq %s:\r\n %s\r\n\r\n',char(studies{st}),char(this.pfunc{i}));
+       err_file     =   fopen(err_path,'a+'); 
+       if ~defs.inifti 
+           func     =	this.p_func(i,:); 
+       else 
+           func     =   this.p_func{i,:}; 
+       end       
+       fprintf(err_file,'Error reading warped ROIs. Trying with unwarped\r\n  %s \r\n Acq %s:\r\n %s\r\n\r\n',char(studies{st}),char(func));
        fclose(err_file);         
     end
     
