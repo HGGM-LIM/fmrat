@@ -23,7 +23,7 @@ switch spm('Ver')
 
 
 
-    case 'SPM8'
+    otherwise
     global defaults;
     defaults.modality   =   'FMRI';
     job                 =   build_job(paths,onsets, duration,rp,dest,mask,covariable,TR);

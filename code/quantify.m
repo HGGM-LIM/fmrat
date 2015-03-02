@@ -44,8 +44,12 @@ for n=1:nSPM
         
         % PERCENTAGE SIGNAL IMAGE
         mu = size(SPMExtras(1,1).cons,1);
-        B1 = spm_vol([fileparts(path_SPM) filesep 'beta_0001.img']);
-        B2 = spm_vol([fileparts(path_SPM) filesep sprintf('beta_%04d.img',mu)]);           
+        
+        % IMG OR NII!!!!!!!!!
+        [p1, sts] = spm_select('FPList',pwd,'^beta_0001.*[.img,.nii]$');
+        [p2, sts] = spm_select('FPList',pwd,[sprintf('^beta_%04d.*[.img,.nii]$',mu)]);
+        B1 = spm_vol(p1);
+        B2 = spm_vol(p2);           
         b = spm_read_vols([B1,B2]); b={b(:,:,:,1); b(:,:,:,2)};
         if ~defs.an_mode
             div = b{1,1}*SPMExtras(n).cons(1)-b{2,1}*SPMExtras(n).cons(1);
@@ -56,7 +60,8 @@ for n=1:nSPM
             div = b{1,1}*SPMExtras(n).cons(1)*hrf;
             div = imdivide(div*100,b{2,1});            
         end
-            DIV = B1; DIV.dt = [64 0];
+            DIV = B1; 
+            DIV.dt = [64 0];
             DIV.fname = [fileparts(path_SPM) filesep 'div' num2str(n) '.nii']; 
             spm_write_vol(DIV,div);
             [p_div]=change_spacen(DIV.fname,B1.fname,3);
