@@ -187,8 +187,8 @@ switch mode_reg
 
     %___________ANAT TO ATLAS______________________________________________
         flags       =   defaults.coreg.estimate;
-        flags.sep   =   [abs(vxanat(1))*5 abs(vxanat(1))*3];
-        flags.fwhm  =   [abs(vxanat(1))*4 abs(vxanat(1))*4];
+        flags.sep   =   [abs(vxanat(1))*4 abs(vxanat(1))*2];
+        flags.fwhm  =   [abs(vxanat(1))*7 abs(vxanat(1))*4];
         x           =   spm_coreg(V_atlas,V_anat,flags);
         Affine      =   V_anat.mat\spm_matrix(x(:)')*V_atlas.mat;
         Tr          =   [];

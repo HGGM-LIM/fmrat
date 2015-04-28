@@ -574,7 +574,7 @@ switch lower(action)
             defs.rois   =   cellstr(rs);       
             defs.mask = {[defs.rois_dir filesep 'mask.nii']};   
             try
-                fid         =   fopen(defs.mask,'r');
+                fid         =   fopen(defs.mask{1,1},'r');
             catch
                 defs.mask   =   {''};
             end

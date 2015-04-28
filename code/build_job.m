@@ -28,7 +28,7 @@ function job=build_job(paths,onsets, duration,rp,dest,mask, covariable, TR)
     vals            =   {};
     str             =   {};
     rgss             =  struct([]);
-    if ~isempty(covariable)
+    if ~isempty(covariable) && (nnz(covariable)>0)
         for i=1:size(covariable,2)
            str{i}   =   ['cov' num2str(i)]; 
            vals{i}  =   covariable(:,i);

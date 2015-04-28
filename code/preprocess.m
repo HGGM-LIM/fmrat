@@ -66,10 +66,10 @@ if ~defs.inifti
             fprintf('Preprocessing ACQ %s ...\n',this.dat(u,:));        
             [pathstr,nam,ext]   =   fileparts(fileparts(fileparts(fileparts(this.dat(u,:)))));
             [p nom ext]         =   fileparts(fileparts(this.dat(u,:)));
-            if ~isempty(regexp(nom,'\d\d\d\d','ONCE'))  continue;  end
-         %   -------------------------------------------------------------------------------------------------
-         %   Fill numbers and dat2 (without FunTool images)
-         %   -------------------------------------------------------------------------------------------------
+            %   -------------------------------------------------------------------------------------------------
+            %   Remove FunTool(Bruker) images or auxiliary recosntructions
+            %   --------------------------------------------------------------
+            if ~isempty(regexp(nom,'\d\d\d\d','ONCE')) || isempty(regexp(nom,'1')) continue;  end
             if isempty(this.dat2) 
                 this.dat2   =   this.dat(u,:); 
             else
