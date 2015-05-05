@@ -22,7 +22,7 @@ function varargout = fmri_gui(varargin)
 
 % Edit the above text to modify the response to help fmri_gui
 
-% Last Modified by GUIDE v2.5 16-Jan-2015 18:32:24
+% Last Modified by GUIDE v2.5 05-May-2015 10:16:26
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -82,12 +82,18 @@ set(handles.popupmenu6,'Value',1);
 set(handles.edit12,'String','');
 set(handles.edit13,'String','');
 set(handles.edit14,'String','');
-   set(handles.edit12 ,'Visible','off');    
-   set(handles.edit13 ,'Visible','off');    
-   set(handles.edit14 ,'Visible','off'); 
+   set(handles.edit12 ,'Visible','on');    
+   set(handles.edit13 ,'Visible','on');    
+   set(handles.edit14 ,'Visible','on'); 
        set(handles.edit12 ,'Enable','off');    
        set(handles.edit13 ,'Enable','off');    
-       set(handles.edit14 ,'Enable','off');      
+       set(handles.edit14 ,'Enable','off'); 
+   set(handles.text21 ,'Visible','on');    
+   set(handles.text22 ,'Visible','on');    
+   set(handles.text25 ,'Visible','on'); 
+   set(handles.text17 ,'Visible','on');    
+   set(handles.text23 ,'Visible','on');    
+   set(handles.text24 ,'Visible','on');    
 
 set(handles.checkbox8,'Value',1);
 set(handles.checkbox9,'Value',1);
@@ -821,22 +827,12 @@ try
             set(handles.edit12,'String',num2str(rx));
             set(handles.edit13,'String',num2str(ry));
             set(handles.edit14,'String',num2str(rz));
-           set(handles.text17 ,'Enable','on'); 
-           set(handles.text21 ,'Enable','on');    
-           set(handles.text22 ,'Enable','on');    
-           set(handles.text23 ,'Enable','on');    
-           set(handles.text24 ,'Enable','on');    
-           set(handles.text25 ,'Enable','on'); 
-
         else
-           set(handles.text17 ,'Enable','off'); 
-           set(handles.text21 ,'Enable','off');    
-           set(handles.text22 ,'Enable','off');    
-           set(handles.text23 ,'Enable','off');    
-           set(handles.text24 ,'Enable','off');    
-           set(handles.text25 ,'Enable','off'); 
+           set(handles.edit12 ,'Enable','off');    
+           set(handles.edit13 ,'Enable','off');    
+           set(handles.edit14 ,'Enable','off'); 
         end
-                 
+            
     else
         set(handles.uipanel14,'Visible','off'); 
         set(handles.popupmenu6 ,'Visible','off'); 
@@ -958,7 +954,9 @@ function checkbox3_Callback(hObject, eventdata, handles)
 % hObject    handle to checkbox3 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-val=get(hObject,'Value');
+val     =   get(hObject,'Value');
+custom  =   get(handles.popupmenu6,'Value');
+
 if val==0
     set(handles.uipanel14,'Visible','off');
    set(handles.popupmenu6 ,'Visible','off');          
@@ -972,18 +970,12 @@ if val==0
        set(handles.edit12 ,'Visible','off');    
        set(handles.edit13 ,'Visible','off');    
        set(handles.edit14 ,'Visible','off');  
-       set(handles.edit12 ,'Enable','off');    
-       set(handles.edit13 ,'Enable','off');    
-       set(handles.edit14 ,'Enable','off');         
+        
 elseif val==1
     set(handles.uipanel14,'Visible','on');
     set(handles.popupmenu6 ,'Visible','on');   
     set(handles.text16 ,'Visible','on'); 
     
-       set(handles.edit12 ,'Enable','on');    
-       set(handles.edit13 ,'Enable','on');    
-       set(handles.edit14 ,'Enable','on'); 
-       
        set(handles.text17 ,'Visible','on'); 
        set(handles.text21 ,'Visible','on');    
        set(handles.text22 ,'Visible','on');    
@@ -993,8 +985,11 @@ elseif val==1
        set(handles.edit12 ,'Visible','on');    
        set(handles.edit13 ,'Visible','on');    
        set(handles.edit14 ,'Visible','on');  
-
-
+       if custom==1
+           set(handles.edit12 ,'Enable','off');    
+           set(handles.edit13 ,'Enable','off');    
+           set(handles.edit14 ,'Enable','off'); 
+       end
 end
  
 % Hint: get(hObject,'Value') returns toggle state of checkbox3
@@ -1421,20 +1416,20 @@ function popupmenu6_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 val=get(hObject,'Value');
 if val==2
+   set(handles.edit12 ,'Visible','on');    
+   set(handles.edit13 ,'Visible','on');    
+   set(handles.edit14 ,'Visible','on');  
    set(handles.text17 ,'Enable','on'); 
    set(handles.text21 ,'Enable','on');    
    set(handles.text22 ,'Enable','on');    
    set(handles.text23 ,'Enable','on');    
    set(handles.text24 ,'Enable','on');    
    set(handles.text25 ,'Enable','on'); 
-   set(handles.edit12 ,'Visible','on');    
-   set(handles.edit13 ,'Visible','on');    
-   set(handles.edit14 ,'Visible','on');       
    set(handles.edit12 ,'Enable','on');    
    set(handles.edit13 ,'Enable','on');    
    set(handles.edit14 ,'Enable','on');  
    
-elseif val==1
+else
    set(handles.text17 ,'Enable','off'); 
    set(handles.text21 ,'Enable','off');    
    set(handles.text22 ,'Enable','off');    
@@ -2155,3 +2150,12 @@ else
     errordlg(['You cannot enter the covariates before defining NR. '...
         'Please enter NR in the corresponding edit box or enter an advanced paradigm through "Advanced" button']);
 end
+
+
+% --- Executes on button press in checkbox15.
+function checkbox15_Callback(hObject, eventdata, handles)
+% hObject    handle to checkbox15 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of checkbox15
