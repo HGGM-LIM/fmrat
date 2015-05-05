@@ -286,7 +286,7 @@ elseif (~preprocess && ~realign && ~design && ~estimate && display)
     action  =   'display';
 end    
 rois_dir    =   get(handles.edit26,'String');    
-preserve    =   get(handles.checkbox14,'Value');    
+preserve    =   get(handles.checkbox15,'Value');    
 block_ok =      get(handles.edit31,'UserData');
 NR =            str2num(get(handles.edit31,'String'));
 Nrest =         str2num(get(handles.edit2,'String'));
@@ -610,7 +610,7 @@ function togglebutton4_Callback(hObject, eventdata, handles)
 
 % SAVE CONFIG PRINT
 sel_dir     =   get(handles.edit1,'String');
-preserve    =   get(handles.checkbox14,'Value');
+preserve    =   get(handles.checkbox15,'Value');
 sm =            get(handles.checkbox2,'Value');
 sx='';
 if sm==1
@@ -786,7 +786,7 @@ try
     set(handles.edit30,'String',num2str(func_seq));     
     set(handles.edit26,'String',deblank(rois_dir));      
     set(handles.checkbox3,'Value',cast(cast(coreg,'uint8'),'logical'));
-    set(handles.checkbox14,'Value',cast(cast(preserve,'uint8'),'logical'));
+    set(handles.checkbox15,'Value',cast(cast(preserve,'uint8'),'logical'));
     if coreg    
         set(handles.radiobutton10,'Value',custom_atlas);    
         if ~custom_atlas
@@ -1857,13 +1857,13 @@ function checkbox13_Callback(hObject, eventdata, handles)
 % Hint: get(hObject,'Value') returns toggle state of checkbox13
 
 
-% --- Executes on button press in checkbox14.
-function checkbox14_Callback(hObject, eventdata, handles)
-% hObject    handle to checkbox14 (see GCBO)
+% --- Executes on button press in checkbox15.
+function checkbox15_Callback(hObject, eventdata, handles)
+% hObject    handle to checkbox15 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hint: get(hObject,'Value') returns toggle state of checkbox14
+% Hint: get(hObject,'Value') returns toggle state of checkbox15
 
 
 
