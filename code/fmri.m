@@ -772,7 +772,8 @@ if defs.coreg
         end
         
         % Change space of mask.nii in case of Bruker type
-        if ~defs.inifti
+        eval(['this=data_struct.' char(studies{st}) ';']);
+        if isempty(this(1).mask{1,1})
             try
                 cd(proc);
                 ref         =   dir(['wr*' defs.im_name '*0001.nii']);  % ROIs must have same dims as warped images
@@ -992,10 +993,15 @@ for st=1:size(studies,1)
                 proc	=   [fileparts(fileparts(fileparts(this.p_func(i,:)))) filesep work_dir];
                 source_path  =   proc;
                 mask        =   defs.mask{1};                
+            elseif ~isempty(defs.mask)
+                source_path  =   fileparts(this.p_func{i,:});
+                proc    =   source_path;
+                mask        =   defs.mask{1};      
             else
                 source_path  =   fileparts(this.p_func{i,:});
                 proc    =   source_path;
-                mask        =   this.mask{i};                
+                mask        =   this.mask{i};                     
+                
             end 
     fprintf('____%s______\n',proc);   
 

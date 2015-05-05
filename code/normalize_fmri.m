@@ -279,7 +279,7 @@ switch mode_reg
         ref         =   dir(['w' defs.im_name '*0001.nii']);  % ROIs must have same dims as warped images        
     end    
     
-    if defs.inifti 
+    if ~isempty(this.mask(ff))
         mask        =   char(this.mask(ff));  % If Nifti, several masks
     end
     try
