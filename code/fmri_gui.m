@@ -9,7 +9,8 @@ function varargout = fmri_gui(varargin)
 %      FMRI_GUI('CALLBACK',hObject,eventData,handles,...) calls the local
 %      function named CALLBACK in FMRI_GUI.M with the given input arguments.
 %
-%      FMRI_GUI('Property','Value',...) creates a new FMRI_GUI or raises the
+%      FMRI_GUI('Property','Value',...) creates a new FMRI_GUI or raises
+%      the
 %      existing singleton*.  Starting from the left, property value pairs are
 %      applied to the GUI before fmri_gui_OpeningFcn gets called.  An
 %      unrecognized property name or invalid value makes property application
@@ -970,6 +971,7 @@ if val==0
        set(handles.edit12 ,'Visible','off');    
        set(handles.edit13 ,'Visible','off');    
        set(handles.edit14 ,'Visible','off');  
+       set(handles.edit26 ,'String','');         
         
 elseif val==1
     set(handles.uipanel14,'Visible','on');
@@ -990,6 +992,18 @@ elseif val==1
            set(handles.edit13 ,'Enable','off');    
            set(handles.edit14 ,'Enable','off'); 
        end
+       install     =   mfilename('fullpath');
+       handed   =   get(handles.radiobutton9,'Value');
+       sp       =   get(handles.popupmenu5,'Value');
+       if handed && (sp==1)
+           set( handles.edit26,'String',[fileparts(install) filesep 'Atlas_SD']);
+       elseif handed && (sp==2)
+           set( handles.edit26,'String',[fileparts(install) filesep 'Atlas_Wistar']); 
+       else
+           atlas_dir    =   get(handles.edit11,'String');
+           set( handles.edit26,'String',atlas_dir); 
+       end       
+       
 end
  
 % Hint: get(hObject,'Value') returns toggle state of checkbox3
@@ -1123,11 +1137,13 @@ function edit11_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 contents = get(hObject,'String');
-set(handles.uipanel5,'BackgroundColor',[0.867, 0.918, 0.976]);
+set(handles.uipanel4,'BackgroundColor',[0.867, 0.918, 0.976]);
 if isdir(contents) 
     set(hObject,'String',contents); 
+    set( handles.edit26,'String',contents);
 else
     set(hObject,'String','');
+    set( handles.edit26,'String','');
 end
  
 % Hints: get(hObject,'String') returns contents of edit11 as text
@@ -1168,8 +1184,9 @@ if sel_dir ~=0
     if isdir(sel_dir) && ~isempty(folder) 
         set(hObject,'UserData',sel_dir);
         set(handles.edit11,'String',sel_dir);
+        set(handles.edit26,'String',sel_dir);        
         set(handles.edit11,'UserData',sel_dir);
-        set(handles.uipanel14,'BackgroundColor',[0.867, 0.918, 0.976]);
+        set(handles.uipanel14,'BackgroundColor',[222/256, 235/256, 250/256]);
     else
         set(handles.edit11,'String','Not valid');
         set(handles.uipanel14,'BackgroundColor',[0.847,0.161,0]);   
@@ -1199,13 +1216,24 @@ if strcmp(sel,'radiobutton9')
     set(handles.edit11,'Enable','off');
     set(handles.radiobutton9,'Value',1);
     set(handles.radiobutton10,'Value',0);
+    install     =   mfilename('fullpath');
+    if (get(handles.popupmenu5,'Value')==1)
+       set( handles.edit26,'String',[fileparts(install) filesep 'Atlas_SD']);
+    elseif (get(handles.popupmenu5,'Value')==2)
+       set( handles.edit26,'String',[fileparts(install) filesep 'Atlas_Wistar']); 
+    end    
+    
 elseif strcmp(sel,'radiobutton10')
     set(handles.popupmenu5,'Enable','off');
     set(handles.togglebutton7,'Enable','on');
     set(handles.edit11,'Enable','on'); 
     set(handles.radiobutton10,'Value',1);
     set(handles.radiobutton9,'Value',0);    
-    
+    if ~isempty(get(handles.edit11,'String'))
+       set( handles.edit26,'String',get(handles.edit11,'String'));
+    else
+       set( handles.edit26,'String',''); 
+    end       
  
 elseif strcmp(sel,'togglebutton7')
         % Browse button
@@ -1216,6 +1244,7 @@ elseif strcmp(sel,'togglebutton7')
             if isdir(sel_dir) && ~isempty(folder) 
                 set(hObject,'UserData',sel_dir);
                 set(handles.edit11,'String',sel_dir);
+                set(handles.edit26,'String',sel_dir);                
                 set(handles.edit11,'UserData',sel_dir);
                 set(handles.radiobutton10,'Value',1);                
                 set(handles.uipanel14,'BackgroundColor',[0.867, 0.918, 0.976]);
@@ -1909,7 +1938,7 @@ function pushbutton3_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
         % Browse button
-        d=get(handles.edit26,'String');
+        d=get(handles.edit1,'String');
         sel_dir = uigetdir(d,'Please select your ROIs directory:');
         if sel_dir ~=0 
             [path folder e]=fileparts(sel_dir);

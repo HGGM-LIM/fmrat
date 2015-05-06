@@ -991,13 +991,15 @@ function edit18_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
         % Atlas dir
-        in_data = get(hObject,'String');
-        set(handles.uipanel17,'BackgroundColor',[0.906,0.906,0.906]);
-        set(handles.radiobutton6,'Value',1);        
-        if isdir(in_data) 
-            set(hObject,'String',in_data); 
+        contents = get(hObject,'String');
+        set(handles.uipanel17,'BackgroundColor',[0.867, 0.918, 0.976]);
+        if isdir(contents) 
+            set(hObject,'String',contents); 
+            set( handles.edit27,'String',contents);
         else
             set(hObject,'String','');
+            set( handles.edit27,'String','');
+            set(handles.uipanel17,'BackgroundColor',[0.847,0.161,0]);
         end
         
         % Hints: get(hObject,'String') returns contents of edit18 as text
@@ -1051,6 +1053,7 @@ function checkbox4_Callback(hObject, eventdata, handles)
 
 % COREG CHECKBOX
 val=get(hObject,'Value');
+custom  =   get(handles.popupmenu4,'Value');
 if val==0
    set(handles.popupmenu4 ,'Visible','off');          
    set(handles.text28 ,'Visible','off'); 
@@ -1063,7 +1066,8 @@ if val==0
        set(handles.text34 ,'Visible','off');  
        set(handles.edit19 ,'Visible','off');    
        set(handles.edit20 ,'Visible','off');    
-       set(handles.edit21 ,'Visible','off');  
+       set(handles.edit21 ,'Visible','off'); 
+       set(handles.edit27 ,'String','');        
 
 elseif val==1
     set(handles.popupmenu4 ,'Visible','on');   
@@ -1071,10 +1075,7 @@ elseif val==1
    set(handles.uipanel17 ,'Visible','on');      
    
    set(handles.popupmenu4 ,'Value',1);   
-       set(handles.edit19 ,'Enable','off');    
-       set(handles.edit20 ,'Enable','off');    
-       set(handles.edit21 ,'Enable','off');  
-       
+      
        set(handles.text29 ,'Visible','on'); 
        set(handles.text30 ,'Visible','on');    
        set(handles.text31 ,'Visible','on'); 
@@ -1084,6 +1085,23 @@ elseif val==1
        set(handles.edit19 ,'Visible','on');    
        set(handles.edit20 ,'Visible','on');    
        set(handles.edit21 ,'Visible','on');
+
+       if custom==1
+           set(handles.edit19 ,'Enable','off');    
+           set(handles.edit20 ,'Enable','off');    
+           set(handles.edit21 ,'Enable','off'); 
+       end
+       install     =   mfilename('fullpath');
+       handed   =   get(handles.radiobutton5,'Value');
+       sp       =   get(handles.popupmenu3,'Value');
+       if handed && (sp==1)
+           set( handles.edit27,'String',[fileparts(install) filesep 'Atlas_SD']);
+       elseif handed && (sp==2)
+           set( handles.edit27,'String',[fileparts(install) filesep 'Atlas_Wistar']); 
+       else
+           atlas_dir    =   get(handles.edit18,'String');
+           set( handles.edit27,'String',atlas_dir); 
+       end         
     
 
 end
@@ -1561,11 +1579,11 @@ function axes5_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to axes5 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
-path=mfilename('fullpath');
-drawing=[fileparts(path) filesep 'blocks.tif'];
-im=imread(drawing,'tif');
+path        =   mfilename('fullpath');
+drawing     =   [fileparts(path) filesep 'blocks.tif'];
+im          =   imread(drawing,'tif');
 axes(hObject);
-i=image(im);
+i           =   image(im);
 set(hObject,'XTick',[]);
 set(hObject,'YTick',[]);
 % Hint: place code in OpeningFcn to populate axes5
@@ -1601,12 +1619,23 @@ if strcmp(sel,'radiobutton5')
     set(handles.edit18,'Enable','off');
     set(handles.radiobutton5,'Value',1);
     set(handles.radiobutton6,'Value',0);
+    install     =   mfilename('fullpath');
+    if (get(handles.popupmenu3,'Value')==1)
+       set( handles.edit27,'String',[fileparts(install) filesep 'Atlas_SD']);
+    elseif (get(handles.popupmenu3,'Value')==2)
+       set( handles.edit27,'String',[fileparts(install) filesep 'Atlas_Wistar']); 
+    end     
 elseif strcmp(sel,'radiobutton6')
     set(handles.popupmenu3,'Enable','off');
     set(handles.togglebutton7,'Enable','on');
     set(handles.edit18,'Enable','on'); 
     set(handles.radiobutton6,'Value',1);
-    set(handles.radiobutton5,'Value',0);    
+    set(handles.radiobutton5,'Value',0);   
+    if ~isempty(get(handles.edit18,'String'))
+       set( handles.edit27,'String',get(handles.edit18,'String'));
+    else
+       set( handles.edit27,'String',''); 
+    end        
  
 elseif strcmp(sel,'togglebutton7')
         % Browse button
@@ -1618,8 +1647,9 @@ elseif strcmp(sel,'togglebutton7')
                 set(hObject,'UserData',sel_dir);
                 set(handles.edit18,'String',sel_dir);
                 set(handles.edit18,'UserData',sel_dir);
+                set(handles.edit27,'String',sel_dir);                  
                 set(handles.radiobutton6,'Value',1);                
-                set(handles.uipanel17,'BackgroundColor',[0.906,0.906,0.906]);
+                set(handles.uipanel17,'BackgroundColor',[0.867, 0.918, 0.976]);
             else
                 set(handles.radiobutton6,'Value',1);                 
                 set(handles.edit18,'String','Not valid');
