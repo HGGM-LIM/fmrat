@@ -278,11 +278,13 @@ switch mode_reg
 	if isempty(ref)
         ref         =   dir(['w' defs.im_name '*0001.nii']);  % ROIs must have same dims as warped images        
     end    
-    
-    if ~isempty(this.mask(ff))
-        mask        =   char(this.mask(ff));  % If Nifti, several masks
-    end
-    try
+
+    try    
+        if defs.inifti && ~isempty(this.mask(ff))
+            mask        =   char(this.mask(ff));  % If Nifti, several masks
+        elseif ~isempty(defs.mask{1}) 
+            mask        =   defs.mask{1};
+        end
         outname    =   change_spacen(mask,ref.name,1);
         [route nam ext]     =   fileparts(outname);
         new_path            =   deblank([proc filesep nam ext]);
