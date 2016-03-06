@@ -35,8 +35,8 @@ global rotate
         switch tag{1}
             case '##$NI' 
                 dims(3)     =   eval(tag{2});
-            case '##$NR' 
-                dims(4)     =   eval(tag{2});
+%             case '##$NR' 
+%                 dims(4)     =   eval(tag{2});
             case '##$ACQ_slice_sepn'
                 idist       =   eval(fgetl(fid));
             case '##$ACQ_slice_thick' 
@@ -69,6 +69,9 @@ global rotate
         line    =   fgetl(fid2);
         tag     =   strread(line,'%s','delimiter','=');
         switch tag{1}
+            
+            case '##$PVM_NRepetitions' 
+                dims(4)     =   eval(tag{2});            
             case '##$PVM_SPackArrSliceOrient'
                 orient  =   fgetl(fid2);
             case '##$PVM_SPackArrReadOrient'
