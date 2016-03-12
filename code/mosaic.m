@@ -67,10 +67,9 @@ catch
     bgfn    =   fullfile(pwd,res.name);
     Vbg     =   spm_vol(bgfn);
 end
-VbgOrg      =   -Vbg.mat(1:3,4)';  % Origin (in mm) of bg volume
-VbgDim      =   Vbg.dim(1:3);      % Dimensions (in voxels) of bg volume
 VbgVox      =   sqrt(sum(Vbg.mat(1:3,1:3).^2));  % Voxel size (in mm) of bg volume
-VbgOrg      =   round(VbgOrg./VbgVox);    % Origin (in voxels) of bg volume
+VbgOrg      =   -Vbg.mat(1:3,4)'+VbgVox/2;  % Origin (in mm) of bg volume
+VbgDim      =   Vbg.dim(1:3);      % Dimensions (in voxels) of bg volume
 orCode_f    =   3;
 orCode      =   3;
 

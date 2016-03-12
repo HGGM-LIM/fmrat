@@ -25,9 +25,9 @@ global err_path
         onsets      =   find(idx==1)-1;        
         duration    =   Nstim;
     elseif ~isempty(defs.NR) && ~isempty(defs.Nrest) && ~isempty(defs.Nstim) 
-        NR          =   this.des_mtx(ff).NR;
-        Nrest       =   this.des_mtx(ff).Nrest;
-        Nstim       =   this.des_mtx(ff).Nstim;
+        NR          =   defs.NR;
+        Nrest       =   defs.Nrest;
+        Nstim       =   defs.Nstim;
         idx         =   [1:NR];
         idx         =   mod(idx,(Nrest+Nstim))-Nrest;
         onsets      =   find(idx==1)-1;        
