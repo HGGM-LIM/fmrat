@@ -69,7 +69,7 @@ if ~defs.inifti
             %   -------------------------------------------------------------------------------------------------
             %   Remove FunTool(Bruker) images or auxiliary recosntructions
             %   --------------------------------------------------------------
-            if ~isempty(regexp(nom,'\d\d\d\d','ONCE'))  continue;  end %|| isempty(regexp(nom,'1'))
+            if ~isempty(regexp(nom,'\d\d\d\d','ONCE')) || isempty(regexp(nom,'1')) continue;  end %
             if isempty(this.dat2) 
                 this.dat2   =   this.dat(u,:); 
             else
