@@ -78,23 +78,31 @@ set(handles.edit31,'UserData',[0]);
 set(handles.checkbox2,'Value',1);
 set(handles.edit15,'String','1.2');
 
-set(handles.checkbox3,'Value',1);
+set(handles.checkbox3,'Value',0);  % No normalization by default
+    set(handles.uipanel14,'Visible','off');
+   set(handles.popupmenu6 ,'Visible','off');          
+   set(handles.text16 ,'Visible','off'); 
+       set(handles.text17 ,'Visible','off'); 
+       set(handles.text21 ,'Visible','off');    
+       set(handles.text22 ,'Visible','off');    
+       set(handles.text23 ,'Visible','off');    
+       set(handles.text24 ,'Visible','off');    
+       set(handles.text25 ,'Visible','off'); 
+       set(handles.edit12 ,'Visible','off');    
+       set(handles.edit13 ,'Visible','off');    
+       set(handles.edit14 ,'Visible','off');  
+       set(handles.edit26 ,'String',''); 
+
+
 set(handles.popupmenu6,'Value',1);
 set(handles.edit12,'String','');
 set(handles.edit13,'String','');
 set(handles.edit14,'String','');
-   set(handles.edit12 ,'Visible','on');    
-   set(handles.edit13 ,'Visible','on');    
-   set(handles.edit14 ,'Visible','on'); 
+
        set(handles.edit12 ,'Enable','off');    
        set(handles.edit13 ,'Enable','off');    
        set(handles.edit14 ,'Enable','off'); 
-   set(handles.text21 ,'Visible','on');    
-   set(handles.text22 ,'Visible','on');    
-   set(handles.text25 ,'Visible','on'); 
-   set(handles.text17 ,'Visible','on');    
-   set(handles.text23 ,'Visible','on');    
-   set(handles.text24 ,'Visible','on');    
+ 
 
 set(handles.checkbox8,'Value',1);
 set(handles.checkbox9,'Value',1);
@@ -107,7 +115,8 @@ set(handles.edit29,'String','RARE');
 set(handles.edit30,'String','EPI');
 set(handles.text7,'BackgroundColor',[0.9,0.7,0.7]);  
 install     =   mfilename('fullpath');
-set( handles.edit26,'String',[fileparts(install) filesep 'Atlas_SD']);
+%set( handles.edit26,'String',[fileparts(install) filesep 'Atlas_SD']);
+set( handles.edit26,'');
 
 set(handles.radiobutton18,'Value',0);
 set(handles.radiobutton19,'Value',1);
@@ -904,7 +913,7 @@ try
             end
             y       =   zeros(1,adv_paradigm.NR*1000); 
             for i=1:size(adv_paradigm.onsets,2)
-                y(adv_paradigm.onsets(i)*1000:((adv_paradigm.onsets(i)+duration(i))*1000))=1;
+                y(adv_paradigm.onsets(i)*1000:((adv_paradigm.onsets(i)-1+duration(i))*1000))=1;
             end
             base    =   [1:adv_paradigm.NR*1000];
             plot(handles.axes1,base,y,' .b');
@@ -2102,7 +2111,9 @@ if (isfield(prev,'paradigm')) && isstruct(prev.paradigm)
 else
     pdgm    =   Paradigm;
 end
-
+            set(handles.edit2,'String','');
+            set(handles.edit4,'String',''); 
+            set(handles.edit31,'String',''); 
 
 if isstruct(pdgm)
     
@@ -2122,7 +2133,7 @@ if isstruct(pdgm)
             end
             y       =   zeros(1,pdgm.NR*1000); 
             for i=1:size(pdgm.onsets,2)
-                y(pdgm.onsets(i)*1000:((pdgm.onsets(i)+duration(i))*1000))=1;
+                y(pdgm.onsets(i)*1000:((pdgm.onsets(i)+duration(i)-1)*1000))=1;
             end
             base    =   [1:pdgm.NR*1000];
             plot(handles.axes1,base,y,' .b');
@@ -2138,9 +2149,6 @@ if isstruct(pdgm)
 else
             set(handles.axes1,'Visible','on');
             set(handles.edit31,'UserData',0); %block_ok=0              
-            set(handles.edit2,'String','');
-            set(handles.edit4,'String',''); 
-            set(handles.edit31,'String','');              
             axes(handles.axes1); 
             cla
 end
@@ -2181,10 +2189,3 @@ else
 end
 
 
-% --- Executes on button press in checkbox15.
-function checkbox15_Callback(hObject, eventdata, handles)
-% hObject    handle to checkbox15 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hint: get(hObject,'Value') returns toggle state of checkbox15
