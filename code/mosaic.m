@@ -32,7 +32,7 @@ if nargin~=0
 else
     [path_anat sts] =   spm_select(1,'image','Select your anatomical image');
     [path_SPM sts]  =   spm_select(1,'mat','Select your SPM');
-    proc            =   path_SPM;
+    proc            =   fileparts(path_SPM);
     fwe             =   0;
     p               =   0.001;
     kl              =   4;
@@ -40,7 +40,6 @@ else
 end
 
 ver         =   lower(spm('ver'));
-SPM.swd     =   proc;  %update path to ensure multiplatform
 Fgraph      =   spm_figure('FindWin','Graphics');
 spm_clf(Fgraph);
 
@@ -67,11 +66,6 @@ catch
     bgfn    =   fullfile(pwd,res.name);
     Vbg     =   spm_vol(bgfn);
 end
-VbgVox      =   sqrt(sum(Vbg.mat(1:3,1:3).^2));  % Voxel size (in mm) of bg volume
-VbgOrg      =   -Vbg.mat(1:3,4)'+VbgVox/2;  % Origin (in mm) of bg volume
-VbgDim      =   Vbg.dim(1:3);      % Dimensions (in voxels) of bg volume
-orCode_f    =   3;
-orCode      =   3;
 
 %Create orCode from method file
 %*************************************************************************************************************************************
@@ -113,12 +107,23 @@ if ~isempty(result)
     end
     method_bg_exists    =   1;
     fclose(fid2);
-else   orient='axial'; rout='A_P';gap=0;    
+else   orient='axial'; rout='A_P';gap=0; orCode =3;   
 end
 a       =   repmat(orient,3,1);
 a       =   {a(1,:);a(2,:);a(3,:)};
 b       =   {'sagittal';'coronal';'axial'};
 orCode  =   find(strcmp(a,b));
+
+
+
+% orCode_f            =   3;
+% orCode              =   3;
+VbgVox              =   sqrt(sum(Vbg.mat(1:3,1:3).^2));  % Voxel size (in mm) of bg volume
+VbgOrg              =   -Vbg.mat(1:3,4)';  % Origin (in mm) of bg volume
+VbgDim              =   Vbg.dim(1:3);      % Dimensions (in voxels) of bg volume
+
+
+
 
 
     %-----------------------------------------------------------------------
@@ -128,10 +133,12 @@ orCode  =   find(strcmp(a,b));
 SPMExtras   =   struct('M', eye(4), 'cmap', []);
 
 if ~exist('SPM','var')    
-    load(path_SPM);    
+    load(path_SPM); 
+    SPMVol      =  SPM.xVol;
 end
-    
-nSPM=2;    
+
+SPM.swd     =   proc;  %update path to ensure multiplatform    
+nSPM=2;
 
     SPMExtras(1).cmap   =	'hot';
     SPMExtras(2).cmap   =   'cool';
@@ -269,6 +276,7 @@ switch nSPM
         end;
 end;    % switch(nSPM)
 
+
 %Create r_out from method file
 %*************************************************************************************************************************************
 cd(fileparts(fileparts(path_SPM)));
@@ -380,7 +388,6 @@ else
 end
 
 spacing         =   spacing * direction;
-startCoord      =   startCoord';
 
 
 %*************************************************************************************************************************************
@@ -396,21 +403,27 @@ maxCol          =   ceil(num/maxRow);
     FOV_f       =   resol_f.*Vol(1,1).dim+(Vol(1,1).dim-1).*gp_f;
     [offset vector_f]=get_offset(SPMVol(1,1).M,FOV_f,resol_f,Vol(1,1).vox,Vol(1,1).dim,orCode_f,Vol(1,1).r_out);
     Vol_xyz     =   struct('org',Vol(1,1).org(vector_f),'vox',Vol(1,1).vox(vector_f),'dim',Vol(1,1).dim(vector_f));
-    startMin    =   [-Vol_xyz.org(1)*Vol_xyz.vox(1),-Vol_xyz.org(2)*Vol_xyz.vox(2),-Vol_xyz.org(3)*Vol_xyz.vox(3)];
-    startMax    =   [(Vol_xyz.dim(1)-Vol_xyz.org(1))*Vol_xyz.vox(1),(Vol_xyz.dim(2)-Vol_xyz.org(2))*Vol_xyz.vox(2),...
-             (Vol_xyz.dim(3)-Vol_xyz.org(3))*Vol_xyz.vox(3)];
+    startMin    =   [-Vol_xyz.org(1)*Vol_xyz.vox(1)+Vol_xyz.vox(1),...
+                    -Vol_xyz.org(2)*Vol_xyz.vox(2)+Vol_xyz.vox(2),...
+                    -Vol_xyz.org(3)*Vol_xyz.vox(3)+Vol_xyz.vox(3)]; %
+    startMax    =   [(Vol_xyz.dim(1)-Vol_xyz.org(1))*Vol_xyz.vox(1),...
+                    (Vol_xyz.dim(2)-Vol_xyz.org(2))*Vol_xyz.vox(2),...
+                    (Vol_xyz.dim(3)-Vol_xyz.org(3))*Vol_xyz.vox(3)];
     startCoord  =   startMin(orCode);
 catch %else
 %     startMin = -Vol(1,1).org*Vol(1,1).vox;
 %     startMax = (Vol(1,1).dim'-Vol(1,1).org)*Vol(1,1).vox;
 %     startCoord = startMin;
-    startMin    =   [-Vol.org(1)*Vol.vox(1),-Vol.org(2)*Vol.vox(2),-Vol.org(3)*Vol.vox(3)];
-    startMax    =   [(Vol.dim(1)-Vol.org(1))*Vol.vox(1),(Vol.dim(2)-Vol.org(2))*Vol.vox(2),...
-             (Vol.dim(3)-Vol.org(3))*Vol.vox(3)];
+    startMin    =   [-Vol.org(1)*Vol.vox(1)+Vol.vox(1),...
+                    -Vol.org(2)*Vol.vox(2)+Vol.vox(2),...
+                    -Vol.org(3)*Vol.vox(3)+Vol.vox(3)];%
+    startMax    =   [(Vol.dim(1)-Vol.org(1))*Vol.vox(1),...
+                    (Vol.dim(2)-Vol.org(2))*Vol.vox(2),...
+                    (Vol.dim(3)-Vol.org(3))*Vol.vox(3)];
     startCoord  =   startMin(orCode);
 end
 TalL            =   zeros(1,3);
-TalL(orCode)    =   startCoord ;
+TalL(orCode)    =   startCoord;
 nImgs           =   maxRow*maxCol;
 
 %  --------------------------------------------------------------------------
@@ -472,7 +485,7 @@ for n = 1:nImgs
     matr        =   diag([0.01,0.01,0.01,1])\A;
 %    matr=diag([0.01,0.01,0.01,1])\SPMExtras(1).M;    
     kk          =   inv(T0*matr);                %*************************************************************************************   
-    kk(3,4)     =   kk(3,4)+1;              %******************************************************************************************
+%     kk(3,4)     =   kk(3,4)+1;              %******************************************************************************************
     Dbg           =   spm_slice_vol(Vbg, kk, sliceDims, 1);
     if any(Dbg(:)~=0)
         if nz_start == 0 
@@ -576,15 +589,10 @@ text(0.03,top-0.03 , ['Background: ' Vbg.fname ], 'Units','normalized',...
 'FontSize', 6*sc,'HorizontalAlignment', 'left', 'VerticalAlignment', 'top'); 
 axis off
 
+
 %-------------------------------------------------------------------------
 % Loop over images in Mosaic
 %-------------------------------------------------------------------------
-if (method_bg_exists && method_f_exists)
-    my_startMax     =   offset(orCode_f)+FOV_f(3)/2-resol_f(3)/2; %**********************************************************************************
-    TalL_draw       =   offset(orCode_f)-FOV_f(3)/2+resol_f(3)/2; %**********************************************************************************
-end
-
-
 for n = 1:nImgs
     
     %  --------------------------------------------------------------------------
@@ -627,7 +635,7 @@ for n = 1:nImgs
     matr        =   diag([0.01,0.01,0.01,1])\A;
 %    matr=diag([0.01,0.01,0.01,1])\SPMExtras(1).M;    
     kk          =   inv(T0*matr);                %****************************************************************************************************   
-    kk(3,4)     =   kk(3,4)+1;              %****************************************************************************************************
+%     kk(3,4)     =   n;
     Dbg         =   spm_slice_vol(Vbg, kk, sliceDims, 1);
     
     
@@ -700,7 +708,7 @@ for n = 1:nImgs
         matr        =   SPMExtras(k).M;
         matr        =   diag([0.01,0.01,0.01,1])\matr;
         kk2         =   inv(T0*matr);
-        kk2(3,4)    =   kk2(3,4)+1;
+%         kk(3,4)     =   n;
         T           =   spm_slice_vol(Vspm, kk2, sliceDims, SPMinterp);
         Zs          =   spm_slice_vol(Zspm, kk2, sliceDims, SPMinterp);
         
@@ -860,12 +868,7 @@ for n = 1:nImgs
     end
     
 
-    
    
-    
-    
-    
-%     if (method_f_exists && method_bg_exists) TalL_draw=TalL_draw+spacing;    end%*******************************************************
     TalL(orCode)    =   TalL(orCode) + spacing;  % increment by user-specifed spacing.
     L               =   VbgVox.*(TalL./VbgVox)*100;%************************************************************************************
     

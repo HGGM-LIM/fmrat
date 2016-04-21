@@ -184,7 +184,7 @@ function pushbutton1_Callback(hObject, eventdata, handles)
     elseif isempty(onsets) || max(onsets)>NR
         errordlg('onsets not convertible to numbers or bigger than NR');
         ok=0;
-    elseif isempty(duration) || (max(onsets)+duration(end))>NR
+    elseif isempty(duration) || ((max(onsets)-1)+duration(end))> (NR-1)
         errordlg('durations not convertible to numbers or last exceeds NR');
         ok=0;
     end
