@@ -45,21 +45,29 @@ global err_path
     
 if ~defs.preserve    
         if (mode_reg == 1 || mode_reg == 2)
-            str=[num2str(smooth) num2str(coreg)];
+            str=[num2str(reg) num2str(smooth) num2str(coreg)];
             nums=zeros(size(all,1),1);    
             files={}; %Selection of the later output images
                for i=1:size(all,1)
                    [route nam ext]=fileparts(all(i,:));
                    matches='';
                    switch str
-                        case '00'   % Without coregistration or smoothing
-                            [st fin ex matches]=regexp(deblank(nam),['^r' defs.im_name '((?!\_s).)*$'],'matchcase');
-                        case '01'   % Only coregistration
-                            [st fin ex matches]=regexp(deblank(nam),['^wr' defs.im_name '((?!\_s).)*$'],'matchcase');
-                        case '10'   % Only smoothing
-                            [st fin ex matches]=regexp(deblank(nam),['^r' defs.im_name '.*_s'],'matchcase');
-                        case '11'   % Both coregistration and smoothing
-                            [st fin ex matches]=regexp(deblank(nam),['^wr' defs.im_name '.*_s'],'matchcase');                    
+                        case '000'   % Without realignment,coregistration or smoothing
+                            [st fin ex matches]=regexp(deblank(nam),['^' defs.im_name '.*\d\d\d\d$'],'matchcase');
+                        case '001'   % Only coregistration
+                            [st fin ex matches]=regexp(deblank(nam),['^w' defs.im_name '.*\d\d\d\d$'],'matchcase');
+                        case '010'   % Only smoothing
+                            [st fin ex matches]=regexp(deblank(nam),['^' defs.im_name '.*\d\d\d\d\_s$'],'matchcase');
+                        case '011'   % Both coregistration and smoothing
+                            [st fin ex matches]=regexp(deblank(nam),['^w' defs.im_name '.*\d\d\d\d\_s$'],'matchcase');                       
+                        case '100'   % Realignment, but without coregistration or smoothing
+                            [st fin ex matches]=regexp(deblank(nam),['^r' defs.im_name '.*\d\d\d\d$'],'matchcase');
+                        case '101'   % Realignment, and coregistration
+                            [st fin ex matches]=regexp(deblank(nam),['^wr' defs.im_name '.*\d\d\d\d$'],'matchcase');
+                        case '110'   % Realignment and smoothing
+                            [st fin ex matches]=regexp(deblank(nam),['^r' defs.im_name '.*\d\d\d\d\_s$'],'matchcase');
+                        case '111'   % Realignment, coregistration and smoothing
+                            [st fin ex matches]=regexp(deblank(nam),['^wr' defs.im_name '.*\d\d\d\d\_s$'],'matchcase');                    
                    end           
                    if ~isempty(matches)
                       files=[files; [source_path filesep deblank(all(i,:))]];
@@ -77,7 +85,7 @@ if ~defs.preserve
                         case '0'   % Without smooth
                             [st fin ex matches]=regexp(deblank(nam),['^r' defs.im_name '.*'],'matchcase');
                         case '1'   % With smooth
-                            [st fin ex matches]=regexp(deblank(nam),['^r' defs.im_name '.*_s'],'matchcase');
+                            [st fin ex matches]=regexp(deblank(nam),['^r' defs.im_name '.*\_s'],'matchcase');
                    end           
                    if ~isempty(matches)
                       files=[files; {all(i,:)}];
@@ -89,18 +97,42 @@ if ~defs.preserve
 else
     % sel files in priority order (realignment is a must, coreg and smooth
     %                               are optional)
-   [all st]  =   spm_select('FPList',pwd,['^wr' defs.im_name '.*_s']);
+
+                           
+    [all st]  =   spm_select('FPList',pwd,['^wr' defs.im_name '.*\d\d\d\d\_s.nii$']);
     if isempty(all)
-        [all st]  =   spm_select('FPList',pwd,['^r' defs.im_name '.*_s']);
+        [all st]  =   spm_select('FPList',pwd,['^wr' defs.im_name '.*\d\d\d\d.nii$']);    
+    end
+    if isempty(all)    
+        [all st]  =   spm_select('FPList',pwd,['^w' defs.im_name '.*\d\d\d\d\_s.nii$']); 
+    end        
+    if isempty(all)
+        [all st]  =   spm_select('FPList',pwd,['^w' defs.im_name '.*\d\d\d\d.nii$']);
     end
     if isempty(all)
-        [all st]  =   spm_select('FPList',pwd,['^wr' defs.im_name '((?!\_s).)*$']);
-    end
+        [all st]  =   spm_select('FPList',pwd,['^r' defs.im_name '.*\d\d\d\d\_s.nii$']); 
+    end        
+    if isempty(all)
+        [all st]  =   spm_select('FPList',pwd,['^r' defs.im_name '.*\d\d\d\d.nii$']);
+    end        
+    if isempty(all)
+        [all st]  =   spm_select('FPList',pwd,['^' defs.im_name '.*\d\d\d\d\_s.nii$']);
+    end        
+    if isempty(all)
+        [all st]  =   spm_select('FPList',pwd,['^' defs.im_name '.*\d\d\d\d.nii$']);
+    end        
+    
+%     if isempty(all)
+%         [all st]  =   spm_select('FPList',pwd,['^r' defs.im_name '.*_s']);
+%     end
+%     if isempty(all)
+%         [all st]  =   spm_select('FPList',pwd,['^wr' defs.im_name '((?!\_s).)*$']);
+%     end
+%      if isempty(all)
+%         [all st]  =   spm_select('FPList',pwd,['^r' defs.im_name '((?!\_s).)*$']);
+%     end   
      if isempty(all)
-        [all st]  =   spm_select('FPList',pwd,['^r' defs.im_name '((?!\_s).)*$']);
-    end   
-     if isempty(all)
-        warning('No realigned files were found. Realignment is compulsory prior to analysis')
+        warning('No files were found.')
      end     
     files   =  cellstr(all);
     

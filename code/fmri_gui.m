@@ -116,7 +116,7 @@ set(handles.edit30,'String','EPI');
 set(handles.text7,'BackgroundColor',[0.9,0.7,0.7]);  
 install     =   mfilename('fullpath');
 %set( handles.edit26,'String',[fileparts(install) filesep 'Atlas_SD']);
-set( handles.edit26,'');
+set( handles.edit26,'String','');
 
 set(handles.radiobutton18,'Value',0);
 set(handles.radiobutton19,'Value',1);

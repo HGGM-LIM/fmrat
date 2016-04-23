@@ -1,4 +1,4 @@
-function [orient,r_out,idist,m_or,dims,FOV,resol,offset,tp,day,n_acq,n_coils,cmpx,scale,TR]=get_pars(path)
+function [orient,r_out,idist,m_or,dims,FOV,resol,offset,tp,endian,day,n_acq,n_coils,cmpx,scale,TR]=get_pars(path)
 
 % FUNCTION get_pars.m
 % Extracts Bruker aquisition parameters from acqp, method and reco files
@@ -6,6 +6,7 @@ function [orient,r_out,idist,m_or,dims,FOV,resol,offset,tp,day,n_acq,n_coils,cmp
 
 global rotate
 
+    acq_dim     =   0;
     scale       =   ones(4,1);
     cmpx        =   0;
     n_coils     =   1;
@@ -18,6 +19,7 @@ global rotate
     resol       =   zeros(3,1);   %in mm
     offset      =   zeros(3,1);   %in mm
     tp          =   '';
+    endian      =   'l';
     n_acq       =   '';
     matching    =   ['.*Di?a?([0-9]+).*\' filesep '.*'];
     if isunix 
@@ -33,14 +35,16 @@ global rotate
         line    =   fgetl(fid);
         tag     =   strread(line,'%s','delimiter','=');
         switch tag{1}
-            case '##$NI' 
-                dims(3)     =   eval(tag{2});
-%             case '##$NR' 
-%                 dims(4)     =   eval(tag{2});
+            case '##$ACQ_dim'
+                acq_dim     =   str2num(tag{2});
             case '##$ACQ_slice_sepn'
-                idist       =   eval(fgetl(fid));
+                if acq_dim==2
+                    idist       =   eval(fgetl(fid));
+                end
             case '##$ACQ_slice_thick' 
-                resol(3)    =   eval(tag{2});
+                if acq_dim==2              
+                    resol(3)    =   eval(tag{2});
+                end
             case '##$ACQ_slice_offset'
                           slices        =   '';
                           while true
@@ -69,7 +73,8 @@ global rotate
         line    =   fgetl(fid2);
         tag     =   strread(line,'%s','delimiter','=');
         switch tag{1}
-            
+            case '##$PVM_SPackArrNSlices'
+                dims(3)     =   eval(fgetl(fid2));
             case '##$PVM_NRepetitions' 
                 dims(4)     =   eval(tag{2});            
             case '##$PVM_SPackArrSliceOrient'
@@ -113,12 +118,25 @@ global rotate
             line    =   fgetl(fid);
             tag     =	strread(line,'%s','delimiter','=');
             switch tag{1}
-                case '##$RECO_ft_size'
-                    [dims(1) dims(2)]   =   strread(fgetl(fid),'%d %d');
                 case '##$RECO_fov'
-                    [a b]               =   strread(fgetl(fid),'%f %f');
-                    FOV(1)              =   10*a; 
-                    FOV(2)              =   10*b; %from cm to mm
+                    if strcmp(tag{2},'( 2 )')
+                        [a b]               =   strread(fgetl(fid),'%f %f');
+                        FOV(1)              =   10*a; 
+                        FOV(2)              =   10*b; %from cm to mm                        
+                    elseif strcmp(tag{2},'( 3 )')
+                        [a b c]               =   strread(fgetl(fid),'%f %f %f');
+                        FOV(1)              =   10*a; 
+                        FOV(2)              =   10*b; %from cm to mm
+                        FOV(3)              =   10*c;
+                    end
+                case '##$RECO_size'
+                    if strcmp(tag{2},'( 2 )')
+                        [dims(1) dims(2)]   =   strread(fgetl(fid),'%d %d');    
+                    elseif strcmp(tag{2},'( 3 )')
+                        [dims(1) dims(2) dims(3)]   =   strread(fgetl(fid),'%d %d %d');
+                        resol(3)            =   FOV(3)/dims(3);
+                        idist               =   resol(3);
+                    end                    
                 case '##$RECO_wordtype'
                     tp  =   tag{2};
                     switch tp
@@ -138,6 +156,12 @@ global rotate
                             tp  =   'uint16'; 
                         case '_32BIT_USGN_INT' 
                             tp  =   'uint32';              
+                    end
+                case '##$RECO_byte_order'
+                    if strcmp (tag{2},'littleEndian')
+                        endian  =   'l';
+                    elseif strcmp (tag{2},'bigEndian')
+                        endian  =   'b';                        
                     end
                 case '##$RecoNumInputChan'
                     n_coils     =   str2num(tag{2});
@@ -159,7 +183,9 @@ global rotate
     end 
     fclose(fid);
     resol(1:2)  =   [FOV(1)/dims(1); FOV(2)/dims(2)];
-    FOV(3)      =   (dims(3)-1)*idist+resol(3);
+    if acq_dim==2
+        FOV(3)      =   (dims(3)-1)*idist+resol(3);
+    end
     dims        =   cast(dims,'int16');
 
 end

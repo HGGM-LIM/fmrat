@@ -484,10 +484,14 @@ for n = 1:nImgs
     sliceDims   =   [Vsize(i) Vsize(j)];
     matr        =   diag([0.01,0.01,0.01,1])\A;
 %    matr=diag([0.01,0.01,0.01,1])\SPMExtras(1).M;    
-    kk          =   inv(T0*matr);                %*************************************************************************************   
-%     kk(3,4)     =   kk(3,4)+1;              %******************************************************************************************
-    Dbg           =   spm_slice_vol(Vbg, kk, sliceDims, 1);
-    if any(Dbg(:)~=0)
+%     kk          =   inv(T0*matr);                %*************************************************************************************   
+% %     kk(3,4)     =   kk(3,4)+1;              %******************************************************************************************
+%     Dbg           =   spm_slice_vol(Vbg, kk, sliceDims, 1);
+    slice_id            =   zeros(1,3);
+    slice_id(orCode)    =   n;
+    transf              =   [slice_id, zeros(1,3), 0.05,0.05,1, 0,0,0];
+    D                   =   spm_slice_vol(Vbg, spm_matrix(transf), sliceDims, 1);
+    if any(D(:)~=0)
         if nz_start == 0 
             nTalL       =   TalL(orCode);
             nz_start    =   n; 
@@ -635,7 +639,7 @@ for n = 1:nImgs
     matr        =   diag([0.01,0.01,0.01,1])\A;
 %    matr=diag([0.01,0.01,0.01,1])\SPMExtras(1).M;    
     kk          =   inv(T0*matr);                %****************************************************************************************************   
-%     kk(3,4)     =   n;
+    kk(3,4)     =   n;
     Dbg         =   spm_slice_vol(Vbg, kk, sliceDims, 1);
     
     
@@ -704,13 +708,16 @@ for n = 1:nImgs
         Zspm(off)   =   SPMVol(k).Znorm;        
         Vspm        =   reshape(Vspm, dim);
         Zspm        =   reshape(Zspm, dim);
-
-        matr        =   SPMExtras(k).M;
-        matr        =   diag([0.01,0.01,0.01,1])\matr;
-        kk2         =   inv(T0*matr);
-%         kk(3,4)     =   n;
-        T           =   spm_slice_vol(Vspm, kk2, sliceDims, SPMinterp);
-        Zs          =   spm_slice_vol(Zspm, kk2, sliceDims, SPMinterp);
+% 
+%         matr        =   SPMExtras(k).M;
+%         matr        =   diag([0.01,0.01,0.01,1])\matr;
+%         kk2         =   inv(T0*matr);
+%         kk2(3,4)     =   n;
+    slice_id            =   zeros(1,3);
+    slice_id(orCode)    =   n;
+    transf              =   [slice_id, zeros(1,3), 0.05,0.05,1, 0,0,0];
+        T           =   spm_slice_vol(Vspm, spm_matrix(transf), sliceDims, SPMinterp);
+        Zs          =   spm_slice_vol(Zspm, spm_matrix(transf), sliceDims, SPMinterp);
         
         %--------------------------------------------------------
         %  Merge Overlay, T, with composite overlay image, iSPM.
@@ -869,6 +876,7 @@ for n = 1:nImgs
     
 
    
+
     TalL(orCode)    =   TalL(orCode) + spacing;  % increment by user-specifed spacing.
     L               =   VbgVox.*(TalL./VbgVox)*100;%************************************************************************************
     
@@ -1015,10 +1023,10 @@ else
 end
 if nargin~=0
     print(Fgraph,'-dtiff','-r300',[path filesep 'results_' nam '_' num2str(fwe) '_p_' ...
-        regexprep(num2str(p),'\.','_') '_k_' num2str(kl) '.tif'])
+        regexprep(num2str(p),'\.','_') '_k_' num2str(kl) '.tif']);
 else
     print(Fgraph,'-dtiff','-r300',[path filesep 'results_' nam '_manual_' num2str(fwe) '_p_' ...
-        regexprep(num2str(p),'\.','_') '_k_' num2str(kl) '.tif'])
+        regexprep(num2str(p),'\.','_') '_k_' num2str(kl) '.tif']);
 end
 %--------------------------------------------------------------------------
 figure(hZmap);

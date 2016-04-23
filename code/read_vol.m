@@ -1,4 +1,4 @@
-function [vol]=read_vol(path,dims,tp,orient,r_out)
+function [vol]=read_vol(path,dims,tp,endian,orient,r_out)
 
 % FUNCTION read_vol.m
 % Reads and Reorients 3D Bruker volumes
@@ -7,7 +7,7 @@ global rotate
 
         dims    =   dims(1:3);
         fid     =   fopen(deblank(path), 'r');
-        Img     =   fread(fid,tp,'l');
+        Img     =   fread(fid,tp,endian);
         fclose(fid);
  
     switch orient
@@ -16,8 +16,7 @@ global rotate
                 Img     =   reshape(Img,dims');
                 Img     =   flipdim(Img,2);
 %                Img=flipdim(Img,1);
-            end
-            if strcmp(r_out,'A_P') 
+            else
                 Img     =   reshape(Img,[dims(2),dims(1),dims(3)]);
                 Img     =   flipdim(Img,2);   
             end
@@ -26,8 +25,7 @@ global rotate
         case 'sagittal'
             if strcmp(r_out,'A_P') 
                 Img     =   reshape(Img,[dims(1),dims(3),dims(2)]);
-            end
-            if strcmp(r_out,'H_F') 
+            else 
                 Img     =   reshape(Img,[dims(2),dims(1),dims(3)]);
                 Img     =   flipdim(Img,2);
             end

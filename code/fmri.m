@@ -573,9 +573,8 @@ switch lower(action)
             [rs,sts]    =   spm_select('FPList',defs.rois_dir,'^(?i)ROI.*\.nii$');
             defs.rois   =   cellstr(rs);       
             defs.mask = {[defs.rois_dir filesep 'mask.nii']};   
-            try
-                fid         =   fopen(defs.mask{1,1},'r');
-            catch
+            fid         =   fopen(defs.mask{1,1},'r');
+            if fid<1
                 defs.mask   =   {''};
             end
             try 
@@ -680,6 +679,8 @@ studies         =   fieldnames(data_struct);
                   spm_realign(files,defaults.realign.estimate);
                   defaults.realign.write.which          =   2;
                   spm_reslice(strvcat(files),defaults.realign.write);
+                  
+                   this.p_ref_w{i}	=   spm_select('FPList',proc,'^mean.*.nii');
                   
                catch err
                  err_file   =   fopen(err_path,'a+');

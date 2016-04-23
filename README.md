@@ -3,7 +3,7 @@
 ============================================================================================================
 
 ============================================================================================================
-	THIS TOOL IS BEING DEBUGGED AT THE MOMENT, sorry for the inconveniences
+	THIS TOOL IS BEING DEBUGGED AT THE MOMENT (NORMALIZATION NOT WORKING; UNCLICK AND USE THE REST), sorry for the inconveniences
 ============================================================================================================
 
 

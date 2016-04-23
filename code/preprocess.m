@@ -163,10 +163,10 @@ if ~defs.inifti
         for u=1:size(this.paths_func,1)
                 fprintf('-------------------------------------------------------------------\n');        
                 fprintf('Functional to NIFTI:   %s\n',this.paths_func(u,:));  
-                [orient,r_out,idist,m_or,dims,FOV,resol,offset,tp,day,n_acq,n_coils,cmpx,scale,TR]=get_pars(this.paths_func(u,:));
+                [orient,r_out,idist,m_or,dims,FOV,resol,offset,tp,endian,day,n_acq,n_coils,cmpx,scale,TR]=get_pars(this.paths_func(u,:));
                 this.or{u}          =   cellstr(orient);
                 this.vox(u,:)       =   resol;
-                [Img]               =   read_seq(this.paths_func(u,:),dims,tp,orient,r_out);
+                [Img]               =   read_seq(this.paths_func(u,:),dims,tp,endian,orient,r_out);
                 [pathstr,nam,ext]   =   fileparts(fileparts(fileparts(fileparts(this.paths_func(u,:)))));
                 n_acq               =   nam; 
                 [s,mess,messid]     =   mkdir(fullfile(pathstr,n_acq),work_dir);
