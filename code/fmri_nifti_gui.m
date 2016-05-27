@@ -23,7 +23,7 @@ function varargout = fmri_nifti_gui(varargin)
 
 % Edit the above text to modify the response to help fmri_nifti_gui
 
-% Last Modified by GUIDE v2.5 20-Jan-2015 11:53:18
+% Last Modified by GUIDE v2.5 26-May-2016 23:49:25
 
 % Begin initialization code - DO NOT EDIT
 global test
@@ -69,6 +69,8 @@ set(handles.axes5,'XTick',[]);
 set(handles.axes5,'YTick',[]);
 
 % Load default values
+axes(handles.axes3); 
+cla
 set(handles.edit14,'String','');
 
 set(handles.edit15,'String','');
@@ -80,7 +82,7 @@ set(handles.edit17,'UserData',[0]);
 set(handles.checkbox3,'Value',1);
 set(handles.edit22,'String','1.2');
 
-set(handles.checkbox4,'Value',1);
+set(handles.checkbox4,'Value',0);
 set(handles.popupmenu4,'Value',1);
 set(handles.edit19,'String','');
 set(handles.edit20,'String','');
@@ -102,7 +104,8 @@ set(handles.edit23,'String','0.05');
 set(handles.edit24,'String','4');
 set(handles.text26,'BackgroundColor',[0.9,0.7,0.7]);
 install     =   mfilename('fullpath');
-set( handles.edit27,'String',[fileparts(install) filesep 'Atlas_SD']);
+set( handles.edit27,'String','');%[fileparts(install) filesep 'Atlas_SD']);
+set(handles.uipanel17,'Visible','off');
 
 set(handles.radiobutton5,'Value',1);
 set(handles.radiobutton6,'Value',0);
@@ -115,6 +118,9 @@ set(handles.togglebutton8,'Value',0);
 set(handles.togglebutton9,'Value',0);
 set(handles.togglebutton10,'Value',0);
 
+set(handles.edit30,'String','0');
+set(handles.edit31,'String','128');
+set(handles.uipanel20,'UserData',[]);
 
 % UIWAIT makes fmri_nifti_gui wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
@@ -201,18 +207,28 @@ block_ok =      get(handles.edit17,'UserData');
 NR =            str2num(get(handles.edit17,'String'));
 Nrest =         str2num(get(handles.edit15,'String'));
 Nstim =         str2num(get(handles.edit16,'String'));
+
+skip        =   str2num(get(handles.edit30,'String')); 
+cutoff  =       str2num(get(handles.edit31,'String')); 
 adv_dat     =   get(handles.uipanel20,'UserData');
 adv_paradigm=   [];
 adv_cov     =   [];
+user_hrf    =   [];
+t_max       =   [];
 if ~isempty(adv_dat) && isfield(adv_dat,'paradigm')
     adv_paradigm=   adv_dat.paradigm;
 end
 if ~isempty(adv_dat) && isfield(adv_dat,'cov')
     adv_cov         =   adv_dat.cov;
 end
+if ~isempty(adv_dat) && isfield(adv_dat,'user_hrf')
+    user_hrf        =   adv_dat.user_hrf;
+    t_max           =   adv_dat.t_max;    
+end
+RevZ =          0;%get(handles.checkbox16,'Value');
 fwe=            get(handles.radiobutton8,'Value');
-p =             str2num(get(handles.edit23,'String'));
-k =             str2num(get(handles.edit24,'String'));
+p=              str2num(get(handles.edit23,'String'));
+k=              str2num(get(handles.edit24,'String'));
 anat_seq=       '';
 func_seq=       '';
 mode_reg=2;
@@ -227,86 +243,75 @@ end
 ok= ['isdir(sel_dir) && all(struct_ok) && ((block_ok==1) || ~isempty(adv_paradigm)) && ' ...
     '((coreg && (sp~=0))|| (coreg && (~isempty(atlas_dir))) || (~coreg))' ...
     '&& ((custom_resol==0)||((~isempty(rx))&&(~isempty(ry))&&(~isempty(rz))))'...
-    '&& ((sm==0)|| (~isnan(sx))) && exist(''data_struct'',''var'') && ~isempty(TR)'];
+    '&& ((sm==0)|| (~isnan(sx))) && ((p>0)&& (p<=1) && (~isnan(p)))&& ((k>0)&&(~isnan(k)))' ...
+    '&& exist(''data_struct'',''var'') && ~isempty(TR)'...
+    '&& ((skip>=0)&& (~isnan(skip))) && ((cutoff>=0) && (~isnan(skip)))'];
 if eval(ok)        
-    set(handles.uipanel12,'BackgroundColor',[0.906,0.906,0.906]);
+    set(handles.uipanel12,'BackgroundColor',[0.867, 0.918, 0.976]);
     set(handles.uipanel19,'BackgroundColor',[0.906,0.906,0.906]); 
     cputime,
     eval(['fmri(action,sel_dir,sp,atlas_dir,sm,coreg,mode_reg,anat_seq,func_seq,'...
         'NR,Nrest,Nstim,0,fwe,p,k,custom_atlas,custom_resol,rx,ry,rz,sx,preserve,preprocess,' ...
-        'realign, design,estimate, display,adv_paradigm, adv_cov,1,studies,data_struct,rois_dir, TR)']);
-else
-    if ~(isdir(sel_dir)) 
+        'realign, design,estimate, display,adv_paradigm, adv_cov,RevZ, skip,cutoff,user_hrf,t_max,' ...
+        '1,studies,data_struct,rois_dir, TR)']);
+
+elseif ~(isdir(sel_dir)) 
         set(handles.edit14,'String','Not valid');
         set(handles.uipanel12,'BackgroundColor',[0.847,0.161,0]);
         set(hObject,'Value',0);
         errordlg('Directory is not valid');
-    elseif struct_ok==0
+elseif ~all(struct_ok)
        set(handles.text41,'Visible','on');            
        set(handles.text41,'String','WRONG','BackgroundColor', [0.847,0.161,0]);        
         errordlg(['Data structure retrieved from "Nifti selector" window is not valid. Press "Browse" '...
-            'button again for fMRI folder selection and set functional-structural correspondences.']);
-    elseif block_ok==0 || ~isstruct(adv_paradigm)
+            'button again for fMRI folder selection and set functional-structural correspondences.']);        
+elseif block_ok==0 && isempty(adv_paradigm)
         set(handles.uipanel19,'BackgroundColor',[0.847,0.161,0]);
         set(hObject,'Value',0);  
         errordlg('Block design is not valid');    
-    elseif coreg && (sp==0) && (isempty(atlas_dir))
+elseif coreg && (sp==0) && (isempty(atlas_dir))
         set(handles.uipanel17,'BackgroundColor',[0.847,0.161,0]);
         set(hObject,'Value',0);  
         errordlg('Atlas specification is not valid');          
-    elseif (coreg && (custom_resol==1) && ((isempty(rx))||(isempty(ry))||(isempty(rz)))) 
-        set(handles.uipanel16,'BackgroundColor',[0.847,0.161,0]);
-        set(handles.uipanel18,'BackgroundColor',[0.847,0.161,0]);        
-        set(handles.checkbox4,'BackgroundColor',[0.847,0.161,0]);
-        set(handles.checkbox3,'BackgroundColor',[0.847,0.161,0]);
-        set(handles.text28,'BackgroundColor',[0.847,0.161,0]);
-        set(handles.text29,'BackgroundColor',[0.847,0.161,0]);        
-        set(handles.text30,'BackgroundColor',[0.847,0.161,0]);        
-        set(handles.text31,'BackgroundColor',[0.847,0.161,0]);  
-        set(handles.text32,'BackgroundColor',[0.847,0.161,0]);        
-        set(handles.text33,'BackgroundColor',[0.847,0.161,0]);       
-        set(handles.text34,'BackgroundColor',[0.847,0.161,0]);  
-        set(handles.text35,'BackgroundColor',[0.847,0.161,0]);   
-        set(handles.text36,'BackgroundColor',[0.847,0.161,0]);   
-        set(handles.text37,'BackgroundColor',[0.847,0.161,0]); 
-        set(handles.text38,'BackgroundColor',[0.847,0.161,0]);         
+elseif (coreg && (custom_resol==1) && ((isempty(rx))||(isempty(ry))||(isempty(rz)))) 
+        set(handles.popupmenu4,'BackgroundColor',[0.847,0.161,0]);
+        set(handles.edit19,'BackgroundColor',[0.847,0.161,0]);
+        set(handles.edit20,'BackgroundColor',[0.847,0.161,0]);
+        set(handles.edit21,'BackgroundColor',[0.847,0.161,0]);        
         set(hObject,'Value',0);  
         errordlg('Final resolution is not valid');                  
-    elseif (coreg && (custom_resol==1) && ((rx==0)||(ry==0)||(rz==0))) 
-        set(handles.uipanel16,'BackgroundColor',[0.847,0.161,0]);
-        set(handles.uipanel18,'BackgroundColor',[0.847,0.161,0]);        
-        set(handles.checkbox4,'BackgroundColor',[0.847,0.161,0]);
-        set(handles.checkbox3,'BackgroundColor',[0.847,0.161,0]);
-        set(handles.text28,'BackgroundColor',[0.847,0.161,0]);
-        set(handles.text29,'BackgroundColor',[0.847,0.161,0]);        
-        set(handles.text30,'BackgroundColor',[0.847,0.161,0]);        
-        set(handles.text31,'BackgroundColor',[0.847,0.161,0]);  
-        set(handles.text32,'BackgroundColor',[0.847,0.161,0]);        
-        set(handles.text33,'BackgroundColor',[0.847,0.161,0]);       
-        set(handles.text34,'BackgroundColor',[0.847,0.161,0]);  
-        set(handles.text35,'BackgroundColor',[0.847,0.161,0]);   
-        set(handles.text36,'BackgroundColor',[0.847,0.161,0]);   
-        set(handles.text37,'BackgroundColor',[0.847,0.161,0]); 
-        set(handles.text38,'BackgroundColor',[0.847,0.161,0]);  
+elseif (coreg && (custom_resol==1) && ((rx==0)||(ry==0)||(rz==0))) 
+        set(handles.popupmenu4,'BackgroundColor',[0.847,0.161,0]);
+        set(handles.edit19,'BackgroundColor',[0.847,0.161,0]);
+        set(handles.edit20,'BackgroundColor',[0.847,0.161,0]);
+        set(handles.edit21,'BackgroundColor',[0.847,0.161,0]);           
         set(hObject,'Value',0);  
-        errordlg('Final resolution is not valid');                          
+        errordlg('Final resolution is not valid');  
     elseif (sm==1 && isnan(sx)) 
-        set(handles.text30,'BackgroundColor',[0.847,0.161,0]);
-        set(handles.text31,'BackgroundColor',[0.847,0.161,0]);
-        set(handles.text34,'BackgroundColor',[0.847,0.161,0]); 
+        set(handles.checkbox3,'BackgroundColor',[0.847,0.161,0]);
+        set(handles.edit22,'BackgroundColor',[0.847,0.161,0]);
         set(hObject,'Value',0);  
         errordlg('Smoothing resolution is not valid');
-    elseif ~exist('studies','var') ||  ~exist('data_struct','var')
-        set(handles.text41,'String','WRONG','BackgroundColor', [0.847,0.161,0]); 
-        errordlg('Please select your fMRI directory again and fill the Images structure through the Nifti Selector Window');
+    elseif (skip<0 || isnan(skip))
+        set(handles.edit30,'BackgroundColor',[0.847,0.161,0]);
+        errordlg('Skipped volumes are not a valid number');    
+    elseif (cutoff<0 || isnan(cutoff))
+        set(handles.edit31,'BackgroundColor',[0.847,0.161,0]);
+        errordlg('Cutoff is not a valid number');        
+    elseif (p<=0)|| (p>=1) ||(isnan(p))
+        set(handles.edit23,'BackgroundColor',[0.847,0.161,0]);
+        set(hObject,'Value',0);  
+        errordlg('Probability threshold p should be 0<p<1'); 
+    elseif (k<1) || (isnan(k))
+        set(handles.edit24,'BackgroundColor',[0.847,0.161,0]);
+        set(hObject,'Value',0);  
+        errordlg('Cluster size should be greater than 1');     
     elseif isempty(TR) 
         set(handles.edit28,'BackgroundColor',[0.847,0.161,0]);
         set(hObject,'Value',0);  
         errordlg('Please fill in a valid number for TR in miliseconds');           
-    end
+     
 end
-
-
 
 
 
@@ -355,14 +360,22 @@ block_ok    =   get(handles.edit17,'UserData');
 NR =            str2num(get(handles.edit17,'String'));
 Nrest =         str2num(get(handles.edit15,'String'));
 Nstim =         str2num(get(handles.edit16,'String'));
-adv_dat     =  get(handles.uipanel20,'UserData');
-adv_paradigm=   [];
+skip        =   str2num(get(handles.edit30,'String'));
+cutoff      =   str2num(get(handles.edit31,'String'));
+adv_dat     =   get(handles.uipanel20,'UserData');
+adv_paradigm    =   [];
 adv_cov         =   [];
+user_hrf        =   [];
+t_max           =   [];
 if ~isempty(adv_dat) && isfield(adv_dat,'paradigm')
     adv_paradigm=   adv_dat.paradigm;
 end
 if ~isempty(adv_dat) && isfield(adv_dat,'cov')
     adv_cov         =   adv_dat.cov;
+end
+if ~isempty(adv_dat) && isfield(adv_dat,'user_hrf')
+    user_hrf        =   adv_dat.user_hrf;
+    t_max           =   adv_dat.t_max;
 end
 fwe=            get(handles.radiobutton8,'Value');
 p =             str2num(get(handles.edit23,'String'));
@@ -374,21 +387,23 @@ ok= ['~isempty(data) && all(struct_ok) && isdir(sel_dir) && (block_ok==1) && ' .
     '((coreg && (sp~=0))|| (coreg && (~isempty(atlas_dir))) || (~coreg))' ...
     '&& ((custom_resol==0)||((~isempty(rx))&&(~isempty(ry))&&(~isempty(rz))))' ...
     '&& ((sm==0)||(~isnan(sx))) && ((p>0)|| (p>=1) ||(~isnan(p)))&& ((k>1)||(~isnan(k)))'...
+    '&& ((skip>=0)&& (~isnan(skip))) && ((cutoff>=0) && (~isnan(cutoff)))'...    
     '&& ~isempty(TR)'];
 
 if eval(ok)        
     set(handles.uipanel12,'BackgroundColor',[0.867,0.918,0.976]);
     set(handles.uipanel19,'BackgroundColor',[0.906,0.906,0.906]);
-    [file,path] = uiputfile('config.mat','Save config file');
+    [file,route] = uiputfile('config.mat','Save config file');
     if file ~=0 
-        if isdir(path)  
-        cd(path);
+        if isdir(route)  
+
+        cd(route);
         try
-            fullpath=[path file];
+            fullpath=[route file];
             save(fullpath,'sel_dir','data','struct_ok','block_ok','NR','Nrest','Nstim',...
-                'coreg','custom_atlas','sp',...
-                'atlas_dir','custom_resol','rx','ry','rz',...
-                'rea','des','tim','dis','sm','fwe','p','k','sx','preserve','rois_dir','TR','adv_paradigm','adv_cov');
+                'coreg','custom_atlas','sp','atlas_dir','custom_resol','rx','ry','rz',...
+                'rea','des','tim','dis','sm','fwe','p','k','sx','preserve','rois_dir',...
+                'TR','adv_paradigm','adv_cov','skip','cutoff','user_hrf','t_max');
             fclose all;            
         catch
             errordlg('Cannot save config file here. Check folder permissions');
@@ -405,7 +420,7 @@ elseif ~all(struct_ok)
        set(handles.text41,'String','WRONG','BackgroundColor', [0.847,0.161,0]);        
         errordlg(['Data structure retrieved from "Nifti selector" window is not valid. Press "Browse" '...
             'button again for fMRI folder selection and set functional-structural correspondences.']);        
-elseif block_ok==0 && ~isstruct(adv_paradigm)
+elseif block_ok==0 && isempty(adv_paradigm)
         set(handles.uipanel19,'BackgroundColor',[0.847,0.161,0]);
         set(hObject,'Value',0);  
         errordlg('Block design is not valid');    
@@ -414,56 +429,39 @@ elseif coreg && (sp==0) && (isempty(atlas_dir))
         set(hObject,'Value',0);  
         errordlg('Atlas specification is not valid');          
 elseif (coreg && (custom_resol==1) && ((isempty(rx))||(isempty(ry))||(isempty(rz)))) 
-        set(handles.uipanel16,'BackgroundColor',[0.847,0.161,0]);
-        set(handles.uipanel18,'BackgroundColor',[0.847,0.161,0]);        
-        set(handles.checkbox4,'BackgroundColor',[0.847,0.161,0]);
-        set(handles.checkbox3,'BackgroundColor',[0.847,0.161,0]);
-        set(handles.text28,'BackgroundColor',[0.847,0.161,0]);
-        set(handles.text29,'BackgroundColor',[0.847,0.161,0]);        
-        set(handles.text30,'BackgroundColor',[0.847,0.161,0]);        
-        set(handles.text31,'BackgroundColor',[0.847,0.161,0]);  
-        set(handles.text32,'BackgroundColor',[0.847,0.161,0]);        
-        set(handles.text33,'BackgroundColor',[0.847,0.161,0]);       
-        set(handles.text34,'BackgroundColor',[0.847,0.161,0]);  
-        set(handles.text35,'BackgroundColor',[0.847,0.161,0]);   
-        set(handles.text36,'BackgroundColor',[0.847,0.161,0]);   
-        set(handles.text37,'BackgroundColor',[0.847,0.161,0]); 
-        set(handles.text38,'BackgroundColor',[0.847,0.161,0]);           
+        set(handles.popupmenu4,'BackgroundColor',[0.847,0.161,0]);
+        set(handles.edit19,'BackgroundColor',[0.847,0.161,0]);
+        set(handles.edit20,'BackgroundColor',[0.847,0.161,0]);
+        set(handles.edit21,'BackgroundColor',[0.847,0.161,0]);        
         set(hObject,'Value',0);  
         errordlg('Final resolution is not valid');                  
 elseif (coreg && (custom_resol==1) && ((rx==0)||(ry==0)||(rz==0))) 
-        set(handles.uipanel16,'BackgroundColor',[0.847,0.161,0]);
-        set(handles.uipanel18,'BackgroundColor',[0.847,0.161,0]);        
-        set(handles.checkbox4,'BackgroundColor',[0.847,0.161,0]);
-        set(handles.checkbox3,'BackgroundColor',[0.847,0.161,0]);
-        set(handles.text28,'BackgroundColor',[0.847,0.161,0]);
-        set(handles.text29,'BackgroundColor',[0.847,0.161,0]);        
-        set(handles.text30,'BackgroundColor',[0.847,0.161,0]);        
-        set(handles.text31,'BackgroundColor',[0.847,0.161,0]);  
-        set(handles.text32,'BackgroundColor',[0.847,0.161,0]);        
-        set(handles.text33,'BackgroundColor',[0.847,0.161,0]);       
-        set(handles.text34,'BackgroundColor',[0.847,0.161,0]);  
-        set(handles.text35,'BackgroundColor',[0.847,0.161,0]);   
-        set(handles.text36,'BackgroundColor',[0.847,0.161,0]);   
-        set(handles.text37,'BackgroundColor',[0.847,0.161,0]); 
-        set(handles.text38,'BackgroundColor',[0.847,0.161,0]);           
+        set(handles.popupmenu4,'BackgroundColor',[0.847,0.161,0]);
+        set(handles.edit19,'BackgroundColor',[0.847,0.161,0]);
+        set(handles.edit20,'BackgroundColor',[0.847,0.161,0]);
+        set(handles.edit21,'BackgroundColor',[0.847,0.161,0]);           
         set(hObject,'Value',0);  
         errordlg('Final resolution is not valid');  
-elseif (sm==1 && isnan(sx))         
-        set(handles.text30,'BackgroundColor',[0.847,0.161,0]);
-        set(handles.text31,'BackgroundColor',[0.847,0.161,0]);
-        set(handles.text34,'BackgroundColor',[0.847,0.161,0]);        
+    elseif (sm==1 && isnan(sx)) 
+        set(handles.checkbox3,'BackgroundColor',[0.847,0.161,0]);
+        set(handles.edit22,'BackgroundColor',[0.847,0.161,0]);
         set(hObject,'Value',0);  
-        errordlg('Smoothing resolution is not valid');        
-elseif (p<=0)|| (p>=1) ||(isnan(p))
-        set(handles.edit24,'BackgroundColor',[0.847,0.161,0]);
+        errordlg('Smoothing resolution is not valid');
+    elseif (skip<0 || isnan(skip))
+        set(handles.edit30,'BackgroundColor',[0.847,0.161,0]);
+        errordlg('Skipped volumes are not a valid number');    
+    elseif (cutoff<0 || isnan(cutoff))
+        set(handles.edit31,'BackgroundColor',[0.847,0.161,0]);
+        errordlg('Cutoff is not a valid number');        
+    elseif (p<=0)|| (p>=1) ||(isnan(p))
+        set(handles.edit23,'BackgroundColor',[0.847,0.161,0]);
         set(hObject,'Value',0);  
         errordlg('Probability threshold p should be 0<p<1'); 
-elseif (k<1) || (isnan(k))
-        set(handles.edit25,'BackgroundColor',[0.847,0.161,0]);
+    elseif (k<1) || (isnan(k))
+        set(handles.edit24,'BackgroundColor',[0.847,0.161,0]);
         set(hObject,'Value',0);  
         errordlg('Cluster size should be greater than 1');     
-elseif isempty(TR) 
+    elseif isempty(TR) 
         set(handles.edit28,'BackgroundColor',[0.847,0.161,0]);
         set(hObject,'Value',0);  
         errordlg('Please fill in a valid number for TR in miliseconds');           
@@ -482,13 +480,74 @@ function togglebutton10_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % LOAD CONFIG
+% First clear everything out
+route=mfilename('fullpath');
+drawing=[fileparts(route) filesep 'blocks.tif'];
+im=imread(drawing,'tif');
+axes(handles.axes5);
+i=image(im);
+set(handles.axes5,'XTick',[]);
+set(handles.axes5,'YTick',[]);
 
+% Load default values
+axes(handles.axes3); 
+cla
+set(handles.edit14,'String','');
+
+set(handles.edit15,'String','');
+set(handles.edit16,'String','');
+set(handles.edit17,'String','');
+
+set(handles.edit17,'UserData',[0]);
+
+set(handles.checkbox3,'Value',1);
+set(handles.edit22,'String','1.2');
+
+set(handles.checkbox4,'Value',0);
+set(handles.popupmenu4,'Value',1);
+set(handles.edit19,'String','');
+set(handles.edit20,'String','');
+set(handles.edit21,'String','');
+   set(handles.edit19 ,'Enable','off');    
+   set(handles.edit20 ,'Enable','off');    
+   set(handles.edit21 ,'Enable','off'); 
+set(handles.text41,'Visible','off');
+
+set(handles.checkbox6,'Value',1);
+set(handles.checkbox7,'Value',1);
+set(handles.checkbox8,'Value',1);
+set(handles.checkbox10,'Value',1);
+
+
+set(handles.radiobutton7,'Value',0);
+set(handles.radiobutton8,'Value',1);
+set(handles.edit23,'String','0.05');
+set(handles.edit24,'String','4');
+set(handles.text26,'BackgroundColor',[0.9,0.7,0.7]);
+install     =   mfilename('fullpath');
+set( handles.edit27,'String','');%[fileparts(install) filesep 'Atlas_SD']);
+set(handles.uipanel17,'Visible','off');
+
+set(handles.radiobutton5,'Value',1);
+set(handles.radiobutton6,'Value',0);
+set(handles.popupmenu3,'Enable','on');
+set(handles.togglebutton7,'Enable','off');
+set(handles.edit18,'Enable','off');
+
+set(handles.togglebutton6,'Value',0);
+set(handles.togglebutton8,'Value',0);
+set(handles.togglebutton9,'Value',0);
+set(handles.togglebutton10,'Value',0);
+set(handles.uipanel20,'UserData',[]);
+
+
+% Get config file
 sel_dir=get(handles.edit14,'String');    
 if isdir(sel_dir) cd(sel_dir); end
-[file, path]=uigetfile({'*.mat'},'Select a config file');
+[file, route]=uigetfile({'*.mat'},'Select a config file');
 
 try
-    load(fullfile(path,file));
+    load(fullfile(route,file));
     parent   =   ancestor(hObject,'figure');
     if all(~isempty(data))
         set(parent,'UserData',data);
@@ -504,13 +563,19 @@ try
     set(handles.edit15,'String',num2str(Nrest));
     set(handles.edit16,'String',num2str(Nstim)); 
     set(handles.edit17,'String',num2str(NR));
+    set(handles.edit30,'String',num2str(skip));    
+    set(handles.edit31,'String',num2str(cutoff));        
     adv_dat      =  [];
-    if ~isempty(adv_paradigm) 
+    if exist('adv_paradigm','var') && ~isempty(adv_paradigm) 
         adv_dat.paradigm    =   adv_paradigm;
     end
-    if ~isempty(adv_cov)    
+    if exist('adv_cov','var') && ~isempty(adv_cov)    
         adv_dat.cov    =   adv_cov;        
-    end
+    end    
+    if exist('user_hrf','var') && ~isempty(user_hrf)    
+        adv_dat.user_hrf    =   user_hrf;        
+        adv_dat.t_max       =   t_max;         
+    end  
     set(handles.uipanel20,'UserData',adv_dat);      
     set(handles.edit28,'String',num2str(TR));        
     set(handles.edit17,'UserData',cast(cast(block_ok,'uint8'),'logical'));
@@ -694,7 +759,7 @@ if isempty(d)
 end
 sel_dir = uigetdir(d,'Please select your fMRI directory:');
 if sel_dir ~=0 
-    [path folder e]=fileparts(sel_dir);
+    [route folder e]=fileparts(sel_dir);
     if isdir(sel_dir) && ~isempty(folder) 
         set(hObject,'UserData',sel_dir);
         set(handles.edit14,'String',sel_dir);
@@ -733,7 +798,7 @@ function edit14_Callback(hObject, eventdata, handles)
 
 % Directory edit box
 in_data = get(hObject,'String');
-set(handles.uipanel12,'BackgroundColor',[0.906,0.906,0.906]);
+set(handles.uipanel12,'BackgroundColor',[0.867, 0.918, 0.976]);
 if isdir(in_data) 
     [path folder e]=fileparts(in_data);
     if isdir(in_data) && ~isempty(folder) 
@@ -1126,57 +1191,25 @@ if ~isempty(rxs) && ~isempty(rys) && ~isempty(rzs)
         ry   =  str2num(rys);
         rz   =  str2num(rzs); 
     if (coreg && (custom_resol==1) && (isempty(rx)||isempty(ry)||isempty(rz))) 
-        set(handles.uipanel16,'BackgroundColor',[0.847,0.161,0]);
-        set(handles.uipanel18,'BackgroundColor',[0.847,0.161,0]);        
-        set(handles.checkbox4,'BackgroundColor',[0.847,0.161,0]);
-        set(handles.checkbox3,'BackgroundColor',[0.847,0.161,0]);
-        set(handles.text28,'BackgroundColor',[0.847,0.161,0]);
-        set(handles.text29,'BackgroundColor',[0.847,0.161,0]);        
-        set(handles.text30,'BackgroundColor',[0.847,0.161,0]);        
-        set(handles.text31,'BackgroundColor',[0.847,0.161,0]);  
-        set(handles.text32,'BackgroundColor',[0.847,0.161,0]);        
-        set(handles.text33,'BackgroundColor',[0.847,0.161,0]);       
-        set(handles.text34,'BackgroundColor',[0.847,0.161,0]);  
-        set(handles.text35,'BackgroundColor',[0.847,0.161,0]);   
-        set(handles.text36,'BackgroundColor',[0.847,0.161,0]);   
-        set(handles.text37,'BackgroundColor',[0.847,0.161,0]); 
-        set(handles.text38,'BackgroundColor',[0.847,0.161,0]); 
+        set(handles.popupmenu4,'BackgroundColor',[0.847,0.161,0]);
+        set(handles.edit19,'BackgroundColor',[0.847,0.161,0]);
+        set(handles.edit20,'BackgroundColor',[0.847,0.161,0]);
+        set(handles.edit21,'BackgroundColor',[0.847,0.161,0]);
+ 
             set(hObject,'Value',0);  
             errordlg('Final resolution is not valid');         
     elseif (coreg && (custom_resol==1) && ((rx<=0)||(ry<=0)||(rz<=0))) 
-        set(handles.uipanel16,'BackgroundColor',[0.847,0.161,0]);
-        set(handles.uipanel18,'BackgroundColor',[0.847,0.161,0]);        
-        set(handles.checkbox4,'BackgroundColor',[0.847,0.161,0]);
-        set(handles.checkbox3,'BackgroundColor',[0.847,0.161,0]);
-        set(handles.text28,'BackgroundColor',[0.847,0.161,0]);
-        set(handles.text29,'BackgroundColor',[0.847,0.161,0]);        
-        set(handles.text30,'BackgroundColor',[0.847,0.161,0]);        
-        set(handles.text31,'BackgroundColor',[0.847,0.161,0]);  
-        set(handles.text32,'BackgroundColor',[0.847,0.161,0]);        
-        set(handles.text33,'BackgroundColor',[0.847,0.161,0]);       
-        set(handles.text34,'BackgroundColor',[0.847,0.161,0]);  
-        set(handles.text35,'BackgroundColor',[0.847,0.161,0]);   
-        set(handles.text36,'BackgroundColor',[0.847,0.161,0]);   
-        set(handles.text37,'BackgroundColor',[0.847,0.161,0]); 
-        set(handles.text38,'BackgroundColor',[0.847,0.161,0]); 
+        set(handles.popupmenu4,'BackgroundColor',[0.847,0.161,0]);
+        set(handles.edit19,'BackgroundColor',[0.847,0.161,0]);
+        set(handles.edit20,'BackgroundColor',[0.847,0.161,0]);
+        set(handles.edit21,'BackgroundColor',[0.847,0.161,0]);
             set(hObject,'Value',0);  
             errordlg('Final resolution should be higher than zero'); 
     else
-        set(handles.uipanel16,'BackgroundColor',[0.906,0.906,0.906]);
-        set(handles.uipanel18,'BackgroundColor',[0.906,0.906,0.906]);        
-        set(handles.checkbox4,'BackgroundColor',[0.906,0.906,0.906]);
-        set(handles.checkbox3,'BackgroundColor',[0.906,0.906,0.906]);
-        set(handles.text28,'BackgroundColor',[0.906,0.906,0.906]);
-        set(handles.text29,'BackgroundColor',[0.906,0.906,0.906]);        
-        set(handles.text30,'BackgroundColor',[0.906,0.906,0.906]);        
-        set(handles.text31,'BackgroundColor',[0.906,0.906,0.906]);  
-        set(handles.text32,'BackgroundColor',[0.906,0.906,0.906]);        
-        set(handles.text33,'BackgroundColor',[0.906,0.906,0.906]);       
-        set(handles.text34,'BackgroundColor',[0.906,0.906,0.906]);  
-        set(handles.text35,'BackgroundColor',[0.906,0.906,0.906]);   
-        set(handles.text36,'BackgroundColor',[0.906,0.906,0.906]);   
-        set(handles.text37,'BackgroundColor',[0.906,0.906,0.906]); 
-        set(handles.text38,'BackgroundColor',[0.906,0.906,0.906]); 
+        set(handles.popupmenu4,'BackgroundColor',[0.906,0.906,0.906]);
+        set(handles.edit19,'BackgroundColor',[0.906,0.906,0.906]);
+        set(handles.edit20,'BackgroundColor',[0.906,0.906,0.906]);
+        set(handles.edit21,'BackgroundColor',[0.906,0.906,0.906]);
     end
 end
 % Hints: get(hObject,'String') returns contents of edit19 as text
@@ -1213,57 +1246,25 @@ if ~isempty(rxs) && ~isempty(rys) && ~isempty(rzs)
         ry   =  str2num(rys);
         rz   =  str2num(rzs); 
     if (coreg && (custom_resol==1) && (isempty(rx)||isempty(ry)||isempty(rz))) 
-        set(handles.uipanel16,'BackgroundColor',[0.847,0.161,0]);
-        set(handles.uipanel18,'BackgroundColor',[0.847,0.161,0]);        
-        set(handles.checkbox4,'BackgroundColor',[0.847,0.161,0]);
-        set(handles.checkbox3,'BackgroundColor',[0.847,0.161,0]);
-        set(handles.text28,'BackgroundColor',[0.847,0.161,0]);
-        set(handles.text29,'BackgroundColor',[0.847,0.161,0]);        
-        set(handles.text30,'BackgroundColor',[0.847,0.161,0]);        
-        set(handles.text31,'BackgroundColor',[0.847,0.161,0]);  
-        set(handles.text32,'BackgroundColor',[0.847,0.161,0]);        
-        set(handles.text33,'BackgroundColor',[0.847,0.161,0]);       
-        set(handles.text34,'BackgroundColor',[0.847,0.161,0]);  
-        set(handles.text35,'BackgroundColor',[0.847,0.161,0]);   
-        set(handles.text36,'BackgroundColor',[0.847,0.161,0]);   
-        set(handles.text37,'BackgroundColor',[0.847,0.161,0]); 
-        set(handles.text38,'BackgroundColor',[0.847,0.161,0]); 
+        set(handles.popupmenu4,'BackgroundColor',[0.847,0.161,0]);
+        set(handles.edit19,'BackgroundColor',[0.847,0.161,0]);
+        set(handles.edit20,'BackgroundColor',[0.847,0.161,0]);
+        set(handles.edit21,'BackgroundColor',[0.847,0.161,0]);
+ 
             set(hObject,'Value',0);  
             errordlg('Final resolution is not valid');         
     elseif (coreg && (custom_resol==1) && ((rx<=0)||(ry<=0)||(rz<=0))) 
-        set(handles.uipanel16,'BackgroundColor',[0.847,0.161,0]);
-        set(handles.uipanel18,'BackgroundColor',[0.847,0.161,0]);        
-        set(handles.checkbox4,'BackgroundColor',[0.847,0.161,0]);
-        set(handles.checkbox3,'BackgroundColor',[0.847,0.161,0]);
-        set(handles.text28,'BackgroundColor',[0.847,0.161,0]);
-        set(handles.text29,'BackgroundColor',[0.847,0.161,0]);        
-        set(handles.text30,'BackgroundColor',[0.847,0.161,0]);        
-        set(handles.text31,'BackgroundColor',[0.847,0.161,0]);  
-        set(handles.text32,'BackgroundColor',[0.847,0.161,0]);        
-        set(handles.text33,'BackgroundColor',[0.847,0.161,0]);       
-        set(handles.text34,'BackgroundColor',[0.847,0.161,0]);  
-        set(handles.text35,'BackgroundColor',[0.847,0.161,0]);   
-        set(handles.text36,'BackgroundColor',[0.847,0.161,0]);   
-        set(handles.text37,'BackgroundColor',[0.847,0.161,0]); 
-        set(handles.text38,'BackgroundColor',[0.847,0.161,0]); 
+        set(handles.popupmenu4,'BackgroundColor',[0.847,0.161,0]);
+        set(handles.edit19,'BackgroundColor',[0.847,0.161,0]);
+        set(handles.edit20,'BackgroundColor',[0.847,0.161,0]);
+        set(handles.edit21,'BackgroundColor',[0.847,0.161,0]);
             set(hObject,'Value',0);  
             errordlg('Final resolution should be higher than zero'); 
     else
-        set(handles.uipanel16,'BackgroundColor',[0.906,0.906,0.906]);
-        set(handles.uipanel18,'BackgroundColor',[0.906,0.906,0.906]);        
-        set(handles.checkbox4,'BackgroundColor',[0.906,0.906,0.906]);
-        set(handles.checkbox3,'BackgroundColor',[0.906,0.906,0.906]);
-        set(handles.text28,'BackgroundColor',[0.906,0.906,0.906]);
-        set(handles.text29,'BackgroundColor',[0.906,0.906,0.906]);        
-        set(handles.text30,'BackgroundColor',[0.906,0.906,0.906]);        
-        set(handles.text31,'BackgroundColor',[0.906,0.906,0.906]);  
-        set(handles.text32,'BackgroundColor',[0.906,0.906,0.906]);        
-        set(handles.text33,'BackgroundColor',[0.906,0.906,0.906]);       
-        set(handles.text34,'BackgroundColor',[0.906,0.906,0.906]);  
-        set(handles.text35,'BackgroundColor',[0.906,0.906,0.906]);   
-        set(handles.text36,'BackgroundColor',[0.906,0.906,0.906]);   
-        set(handles.text37,'BackgroundColor',[0.906,0.906,0.906]); 
-        set(handles.text38,'BackgroundColor',[0.906,0.906,0.906]); 
+        set(handles.popupmenu4,'BackgroundColor',[0.906,0.906,0.906]);
+        set(handles.edit19,'BackgroundColor',[0.906,0.906,0.906]);
+        set(handles.edit20,'BackgroundColor',[0.906,0.906,0.906]);
+        set(handles.edit21,'BackgroundColor',[0.906,0.906,0.906]);
     end
 end
 
@@ -1302,57 +1303,25 @@ if ~isempty(rxs) && ~isempty(rys) && ~isempty(rzs)
         ry   =  str2num(rys);
         rz   =  str2num(rzs); 
     if (coreg && (custom_resol==1) && (isempty(rx)||isempty(ry)||isempty(rz))) 
-        set(handles.uipanel16,'BackgroundColor',[0.847,0.161,0]);
-        set(handles.uipanel18,'BackgroundColor',[0.847,0.161,0]);        
-        set(handles.checkbox4,'BackgroundColor',[0.847,0.161,0]);
-        set(handles.checkbox3,'BackgroundColor',[0.847,0.161,0]);
-        set(handles.text28,'BackgroundColor',[0.847,0.161,0]);
-        set(handles.text29,'BackgroundColor',[0.847,0.161,0]);        
-        set(handles.text30,'BackgroundColor',[0.847,0.161,0]);        
-        set(handles.text31,'BackgroundColor',[0.847,0.161,0]);  
-        set(handles.text32,'BackgroundColor',[0.847,0.161,0]);        
-        set(handles.text33,'BackgroundColor',[0.847,0.161,0]);       
-        set(handles.text34,'BackgroundColor',[0.847,0.161,0]);  
-        set(handles.text35,'BackgroundColor',[0.847,0.161,0]);   
-        set(handles.text36,'BackgroundColor',[0.847,0.161,0]);   
-        set(handles.text37,'BackgroundColor',[0.847,0.161,0]); 
-        set(handles.text38,'BackgroundColor',[0.847,0.161,0]); 
+        set(handles.popupmenu4,'BackgroundColor',[0.847,0.161,0]);
+        set(handles.edit19,'BackgroundColor',[0.847,0.161,0]);
+        set(handles.edit20,'BackgroundColor',[0.847,0.161,0]);
+        set(handles.edit21,'BackgroundColor',[0.847,0.161,0]);
+ 
             set(hObject,'Value',0);  
             errordlg('Final resolution is not valid');         
     elseif (coreg && (custom_resol==1) && ((rx<=0)||(ry<=0)||(rz<=0))) 
-        set(handles.uipanel16,'BackgroundColor',[0.847,0.161,0]);
-        set(handles.uipanel18,'BackgroundColor',[0.847,0.161,0]);        
-        set(handles.checkbox4,'BackgroundColor',[0.847,0.161,0]);
-        set(handles.checkbox3,'BackgroundColor',[0.847,0.161,0]);
-        set(handles.text28,'BackgroundColor',[0.847,0.161,0]);
-        set(handles.text29,'BackgroundColor',[0.847,0.161,0]);        
-        set(handles.text30,'BackgroundColor',[0.847,0.161,0]);        
-        set(handles.text31,'BackgroundColor',[0.847,0.161,0]);  
-        set(handles.text32,'BackgroundColor',[0.847,0.161,0]);        
-        set(handles.text33,'BackgroundColor',[0.847,0.161,0]);       
-        set(handles.text34,'BackgroundColor',[0.847,0.161,0]);  
-        set(handles.text35,'BackgroundColor',[0.847,0.161,0]);   
-        set(handles.text36,'BackgroundColor',[0.847,0.161,0]);   
-        set(handles.text37,'BackgroundColor',[0.847,0.161,0]); 
-        set(handles.text38,'BackgroundColor',[0.847,0.161,0]); 
+        set(handles.popupmenu4,'BackgroundColor',[0.847,0.161,0]);
+        set(handles.edit19,'BackgroundColor',[0.847,0.161,0]);
+        set(handles.edit20,'BackgroundColor',[0.847,0.161,0]);
+        set(handles.edit21,'BackgroundColor',[0.847,0.161,0]);
             set(hObject,'Value',0);  
             errordlg('Final resolution should be higher than zero'); 
     else
-        set(handles.uipanel16,'BackgroundColor',[0.906,0.906,0.906]);
-        set(handles.uipanel18,'BackgroundColor',[0.906,0.906,0.906]);        
-        set(handles.checkbox4,'BackgroundColor',[0.906,0.906,0.906]);
-        set(handles.checkbox3,'BackgroundColor',[0.906,0.906,0.906]);
-        set(handles.text28,'BackgroundColor',[0.906,0.906,0.906]);
-        set(handles.text29,'BackgroundColor',[0.906,0.906,0.906]);        
-        set(handles.text30,'BackgroundColor',[0.906,0.906,0.906]);        
-        set(handles.text31,'BackgroundColor',[0.906,0.906,0.906]);  
-        set(handles.text32,'BackgroundColor',[0.906,0.906,0.906]);        
-        set(handles.text33,'BackgroundColor',[0.906,0.906,0.906]);       
-        set(handles.text34,'BackgroundColor',[0.906,0.906,0.906]);  
-        set(handles.text35,'BackgroundColor',[0.906,0.906,0.906]);   
-        set(handles.text36,'BackgroundColor',[0.906,0.906,0.906]);   
-        set(handles.text37,'BackgroundColor',[0.906,0.906,0.906]); 
-        set(handles.text38,'BackgroundColor',[0.906,0.906,0.906]); 
+        set(handles.popupmenu4,'BackgroundColor',[0.906,0.906,0.906]);
+        set(handles.edit19,'BackgroundColor',[0.906,0.906,0.906]);
+        set(handles.edit20,'BackgroundColor',[0.906,0.906,0.906]);
+        set(handles.edit21,'BackgroundColor',[0.906,0.906,0.906]);
     end
 end
 
@@ -1405,7 +1374,7 @@ else
    set(handles.text33,'Enable','off');  
    set(handles.text34,'Enable','off');         
 end
-
+ set(handles.popupmenu4,'BackgroundColor',[1,1,1]);
 % Hints: contents = cellstr(get(hObject,'String')) returns popupmenu4 contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from popupmenu4
 
@@ -1428,7 +1397,31 @@ function edit22_Callback(hObject, eventdata, handles)
 % hObject    handle to edit22 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+smooth =         get(handles.checkbox3,'Value');
+smx =           get(handles.edit22,'String'); 
 
+if ~isempty(smx) 
+        sx   =  str2num(smx);
+ 
+    if smooth && (isnan(sx)) 
+            set(handles.checkbox3,'BackgroundColor',[0.847,0.161,0]);
+            set(handles.edit22,'BackgroundColor',[0.847,0.161,0]);            
+            set(hObject,'Value',0);  
+            errordlg('Smoothing resolution is not valid');         
+    elseif smooth && (sx<=0) 
+            set(handles.checkbox3,'BackgroundColor',[0.847,0.161,0]);
+            set(handles.edit22,'BackgroundColor',[0.847,0.161,0]);  
+            set(hObject,'Value',0);  
+            errordlg('Smoothing resolution should be higher than zero'); 
+    else
+
+
+
+            set(handles.checkbox3,'BackgroundColor',[0.906,0.906,0.906]);
+
+            set(handles.edit22,'BackgroundColor',[0.906,0.906,0.906]);        
+    end
+end
 % Hints: get(hObject,'String') returns contents of edit22 as text
 %        str2double(get(hObject,'String')) returns contents of edit22 as a double
 
@@ -1579,8 +1572,8 @@ function axes5_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to axes5 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
-path        =   mfilename('fullpath');
-drawing     =   [fileparts(path) filesep 'blocks.tif'];
+route        =   mfilename('fullpath');
+drawing     =   [fileparts(route) filesep 'blocks.tif'];
 im          =   imread(drawing,'tif');
 axes(hObject);
 i           =   image(im);
@@ -1813,7 +1806,7 @@ function pushbutton2_Callback(hObject, eventdata, handles)
         d=get(handles.edit14,'String');
         sel_dir = uigetdir(d,'Please select your ROIs directory:');
         if sel_dir ~=0 
-            [path folder e]=fileparts(sel_dir);
+           [route folder e]=fileparts(sel_dir);
             if isdir(sel_dir) && ~isempty(folder) 
                 set(handles.edit27,'String',sel_dir);
                 set(handles.edit27,'UserData',sel_dir);
@@ -1873,12 +1866,11 @@ else
     pdgm    =   Paradigm;
 end
 
-
 if isstruct(pdgm)
-    
-            %pass the data
+             %pass the data
             prev.paradigm    =  pdgm;
             set(handles.uipanel20,'UserData',prev);
+            set(handles.edit17,'String',pdgm.NR);            
             set(handles.edit17,'UserData',1); %block_ok=1
     
             % DRAW
@@ -1905,15 +1897,15 @@ if isstruct(pdgm)
             set(handles.edit17,'UserData',[1]);
             set(handles.uipanel19,'BackgroundColor',[0.867, 0.918, 0.976]);
             set(handles.text26,'BackgroundColor',[0.9,0.7,0.7]);
-else
-            set(handles.axes3,'Visible','on');
-            set(handles.edit17,'UserData',0); %block_ok=0     
             set(handles.edit15,'String','');
-            set(handles.edit16,'String',''); 
-            set(handles.edit17,'String','');            
-            axes(handles.axes3); 
-            cla
+            set(handles.edit16,'String','');               
+elseif isstruct(prev) && isfield(prev,'paradigm')
+            prev            =   rmfield(prev,'paradigm');    
+            set(handles.edit17,'UserData',[0]);
+            set(handles.axes3,'Visible','on');
+
 end
+set(handles.uipanel20,'UserData',prev);
 
 % --- Executes on button press in pushbutton4.
 function pushbutton4_Callback(hObject, eventdata, handles)
@@ -1922,21 +1914,154 @@ function pushbutton4_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 prev        =   get(handles.uipanel20,'UserData');
 NR          =   str2num(get(handles.edit17,'String'));
-if isempty(NR) && isfield(prev,'paradigm') && isfield(prev.paradigm,'NR') 
-    NR  =   prev.paradigm.NR;
+if ~isempty(NR)
     if (isfield(prev,'cov')) && ~isempty(prev.cov)
         covariates    =   prev.cov;
-        covariates    =   Covariate(covariates, NR);
+        covariates    =   Regressors_ui(covariates, NR);
     else
-        covariates    =   Covariate([],NR);
+        covariates    =   Regressors_ui([],NR);
     end
-    prev.cov    =  covariates;
-    set(handles.uipanel20,'UserData',prev);
-elseif ~isempty(NR)
-        covariates    =   Covariate([],NR); 
+    if size(covariates,1)~=1
         prev.cov    =  covariates;
-        set(handles.uipanel20,'UserData',prev);        
+    elseif isstruct(prev) && isfield(prev,'cov')
+            prev            =   rmfield(prev,'cov');    
+    end
+    set(handles.uipanel20,'UserData',prev);      
+  
 else
     errordlg(['You cannot enter the covariates before defining NR. '...
         'Please enter NR in the corresponding edit box or enter an advanced paradigm through "Advanced" button']);
+end
+
+
+
+function edit29_Callback(hObject, eventdata, handles)
+% hObject    handle to edit29 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit29 as text
+%        str2double(get(hObject,'String')) returns contents of edit29 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit29_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit29 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in pushbutton5.
+function pushbutton5_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton5 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+prev                =   get(handles.uipanel20,'UserData');
+if (isfield(prev,'user_hrf')) 
+    user_hrf        =   prev.user_hrf;
+    t_max           =   prev.t_max;
+    info            =   User_hrf(user_hrf,t_max);
+else
+    info            =   User_hrf;
+end
+if isstruct(info)
+
+    %pass the data
+    prev.user_hrf   =  info.user_hrf;
+    prev.t_max      =  info.t_max;     
+elseif isstruct(prev) && isfield(prev,'user_hrf')
+    prev            =   rmfield(prev,'user_hrf');
+    prev            =   rmfield(prev,'t_max');
+end
+set(handles.uipanel20,'UserData',prev); 
+
+
+
+function edit31_Callback(hObject, eventdata, handles)
+% hObject    handle to edit31 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+cutoff        =   get(handles.edit31,'String'); 
+if ~isempty(cutoff) 
+        cutoff   =  str2num(cutoff);
+    if ~isscalar(cutoff)
+            set(handles.edit31,'BackgroundColor',[0.847,0.161,0]);
+            set(hObject,'Value',0);  
+            errordlg('Cutoff is not a valid number');         
+    elseif (cutoff<0) 
+            set(handles.edit31,'BackgroundColor',[0.847,0.161,0]);
+            set(hObject,'Value',0);  
+            errordlg('Cutoff must be >=0');
+    else
+            set(handles.edit31,'BackgroundColor',[1,1,1]);
+    end
+else
+    set(handles.edit31,'BackgroundColor',[0.847,0.161,0]);
+    errordlg(['Cutoff must be a number >=0. It is the cutoff period in seconds' ...
+    'for the high pass filter. All signals with a period higher than this will be filtered out.']);
+end
+% Hints: get(hObject,'String') returns contents of edit31 as text
+%        str2double(get(hObject,'String')) returns contents of edit31 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit31_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit31 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit30_Callback(hObject, eventdata, handles)
+% hObject    handle to edit30 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+skip        =   get(handles.edit30,'String'); 
+rep         =   get(handles.edit17,'String'); 
+
+if ~isempty(skip) && ~isempty(str2num(skip)) && ~isempty(str2num(rep))
+        sk   =  str2num(skip);
+        NR   =  str2num(rep);
+    if ~isscalar(sk)
+            set(handles.edit30,'BackgroundColor',[0.847,0.161,0]);
+            set(hObject,'Value',0);  
+            errordlg('Skipped volumes are not a valid number');         
+    elseif (sk<0) || (sk> (NR-3))
+            set(handles.edit30,'BackgroundColor',[0.847,0.161,0]);
+            set(hObject,'Value',0);  
+            errordlg('Skipped volumes must be >=0 and <=(NR-3)');
+    else
+            set(handles.edit30,'BackgroundColor',[1,1,1]);
+    end
+else
+    set(handles.edit30,'BackgroundColor',[0.847,0.161,0]);    
+    set(handles.edit30,'String','0'); 
+    errordlg('Skipped volumes must be a number >=0 and <=(NR-3). Fill this field after you have defined NR.');
+end
+% Hints: get(hObject,'String') returns contents of edit30 as text
+%        str2double(get(hObject,'String')) returns contents of edit30 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit30_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit30 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
 end

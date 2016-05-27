@@ -30,43 +30,8 @@ global rotate
     day         =   str2num(char(path(e{1,:})));
     path_acqp   =   [fileparts(fileparts(fileparts(path))) filesep 'acqp'];
     fid         =   fopen(deblank(path_acqp), 'rt');
-    %Reading acqp
-    while feof(fid) == 0
-        line    =   fgetl(fid);
-        tag     =   strread(line,'%s','delimiter','=');
-        switch tag{1}
-            case '##$ACQ_dim'
-                acq_dim     =   str2num(tag{2});
-            case '##$ACQ_slice_sepn'
-                if acq_dim==2
-                    idist       =   eval(fgetl(fid));
-                end
-            case '##$ACQ_slice_thick' 
-                if acq_dim==2              
-                    resol(3)    =   eval(tag{2});
-                end
-            case '##$ACQ_slice_offset'
-                          slices        =   '';
-                          while true
-                            read        =   fgetl(fid);
-                            header      =   strread(read,'%c','delimiter','#');
-                            if header(1)=='#' break; end
-                            slices      =   [slices;strread(read,'%s','delimiter','\\ ')];
-                            offset(3)   =   eval(char(slices(floor(size(slices,1)/2)+1)));
-                          end
-            case '##$ACQ_read_offset'
-               read         =   strread(fgetl(fid),'%f','delimiter','\\ '); 
-               offset(1)    =   read(1);           
-            case '##$ACQ_phase1_offset' 
-               read         =   strread(fgetl(fid),'%f','delimiter','\\ '); 
-               offset(2)    =   read(1);  
-            case '##$ACQ_repetition_time'
-                TR          =   eval(fgetl(fid));
-        end
-    end
-    fclose(fid);
-
-    %Reading method
+    
+        %Reading method
     path_method     =   [fileparts(fileparts(fileparts(path))) filesep 'method'];
     fid2            =   fopen(deblank(path_method), 'rt');
     while feof(fid2) == 0
@@ -76,7 +41,9 @@ global rotate
             case '##$PVM_SPackArrNSlices'
                 dims(3)     =   eval(fgetl(fid2));
             case '##$PVM_NRepetitions' 
-                dims(4)     =   eval(tag{2});            
+                dims(4)     =   eval(tag{2}); 
+            case '##$PVM_ScanTime'
+                scan_time   =   eval(tag{2}); 
             case '##$PVM_SPackArrSliceOrient'
                 orient  =   fgetl(fid2);
             case '##$PVM_SPackArrReadOrient'
@@ -108,7 +75,50 @@ global rotate
         end
     end
     fclose(fid2);
+    if exist('scan_time','var')
+        TR          =   scan_time/dims(4) ;
+    end
     
+    
+    %Reading acqp
+    while feof(fid) == 0
+        line    =   fgetl(fid);
+        tag     =   strread(line,'%s','delimiter','=');
+        switch tag{1}
+            case '##$ACQ_dim'
+                acq_dim     =   str2num(tag{2});
+            case '##$ACQ_slice_sepn'
+                if acq_dim==2
+                    idist       =   eval(fgetl(fid));
+                end
+            case '##$ACQ_slice_thick' 
+                if acq_dim==2              
+                    resol(3)    =   eval(tag{2});
+                end
+            case '##$ACQ_slice_offset'
+                          slices        =   '';
+                          while true
+                            read        =   fgetl(fid);
+                            header      =   strread(read,'%c','delimiter','#');
+                            if strcmp(header(1),'#') break; end
+                            slices      =   [slices;strread(read,'%s','delimiter','\\ ')];
+                            offset(3)   =   eval(char(slices(floor(size(slices,1)/2)+1)));
+                          end
+            case '##$ACQ_read_offset'
+               read         =   strread(fgetl(fid),'%f','delimiter','\\ '); 
+               offset(1)    =   read(1);           
+            case '##$ACQ_phase1_offset' 
+               read         =   strread(fgetl(fid),'%f','delimiter','\\ '); 
+               offset(2)    =   read(1);  
+            case '##$ACQ_repetition_time'
+                if ~exist('TR','var')
+                    TR          =   eval(fgetl(fid));
+                end
+        end
+    end
+    fclose(fid);
+
+   
     
     %Reading reco 
     [pathstr,nam,ext]   =   fileparts(fileparts(fileparts(fileparts(path))));

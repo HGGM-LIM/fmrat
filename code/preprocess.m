@@ -24,14 +24,18 @@ if ~defs.inifti
         for u=1:size(DataFiles,1)  
             [pathstr,nam,ext]       =   fileparts(fileparts(fileparts(fileparts(DataFiles(u,:)))));
             [pathstr2,study,ext]    =   fileparts(pathstr);
-            study                   =   [study '_' ext(2:size(ext,2))];
+            if length(study)>8  
+                study   =   ['s' study(1:8)];
+            elseif isscalar(study(1))
+                study   =   ['s' char(study)];
+            end
             if (isempty(files)||isempty(strmatch(study,fieldnames(files)))) 
-                files   =   setfield(files, deblank(study), struct('dat','',...
+                files   =   setfield(files, study , struct('name',deblank(study),'dat','',...
                     'dat2','','nos',[],'methods','','orients','','paths_func','','paths_ref',''));
             end
             e       =   getfield(files,study);        
             e.dat   =   strvcat(e.dat,DataFiles(u,:));
-            files   =   setfield(files,char(study),e);
+            files   =   setfield(files,study,e);
         end
 
 
@@ -62,6 +66,8 @@ if ~defs.inifti
     %REF & FUNC SEARCH loop->paths_func[]    
     %____________________________________________________________________________________________________________________________________
         last_tripilot   =   0;
+
+        
         for u=1:size(this.dat,1)  
             fprintf('Preprocessing ACQ %s ...\n',this.dat(u,:));        
             [pathstr,nam,ext]   =   fileparts(fileparts(fileparts(fileparts(this.dat(u,:)))));
@@ -157,47 +163,67 @@ if ~defs.inifti
     %------------------------------------------------------------------------------------------------------------------------------------
     % FUNCS TO NIFTI loop   
     %____________________________________________________________________________________________________________________________________    
-        if isempty(this.paths_func) errordlg(['No functional images with '  ' method were found']); return; end
+        if isempty(this.paths_func) errordlg(['No functional images with ' func_seq ' method were found']); return; end
         this.or     =   cell(size(this.paths_func,1),1);
         this.vox    =   zeros(size(this.paths_func,1),3);    
         for u=1:size(this.paths_func,1)
+            try            
                 fprintf('-------------------------------------------------------------------\n');        
                 fprintf('Functional to NIFTI:   %s\n',this.paths_func(u,:));  
                 [orient,r_out,idist,m_or,dims,FOV,resol,offset,tp,endian,day,n_acq,n_coils,cmpx,scale,TR]=get_pars(this.paths_func(u,:));
-                this.or{u}          =   cellstr(orient);
-                this.vox(u,:)       =   resol;
-                [Img]               =   read_seq(this.paths_func(u,:),dims,tp,endian,orient,r_out);
-                [pathstr,nam,ext]   =   fileparts(fileparts(fileparts(fileparts(this.paths_func(u,:)))));
-                n_acq               =   nam; 
-                [s,mess,messid]     =   mkdir(fullfile(pathstr,n_acq),work_dir);
-                if ~isempty(mess) 
-                    [succ,errm,m]   =   rmdir(fullfile(pathstr,n_acq,work_dir),'s');
-                    if succ 
-                        mkdir(fullfile(pathstr,n_acq),work_dir); 
-                    else
-                        err         =   ['Please check the folder "Processed" is not in use.\n' ...
-                            'Otherwise Matlab may also be using it, try to close and open Matlab again.'];
-                        errordlg(err,'Unable to remove previous dir "Processed":');
+                if dims(4)<3 || dims(4)~= defs.NR
+                    this.valid(u,1)     =   0;
+                    continue
+                else
+                    this.or{u}          =   cellstr(orient);
+                    [Img]               =   read_seq(this.paths_func(u,:),dims,tp,endian,orient,r_out);
+                    [pathstr,nam,ext]   =   fileparts(fileparts(fileparts(fileparts(this.paths_func(u,:)))));
+                    n_acq               =   nam; 
+                    [s,mess,messid]     =   mkdir(fullfile(pathstr,n_acq),work_dir);
+                    if ~isempty(mess) 
+                        [succ,errm,m]   =   rmdir(fullfile(pathstr,n_acq,work_dir),'s');
+                        if succ 
+                            mkdir(fullfile(pathstr,n_acq),work_dir); 
+                        else
+                            err         =   ['Please check the folder "Processed" is not in use. ' ...
+                                'Otherwise Matlab may also be using it, try to close and open Matlab again.'];
+                            errordlg(err,'Unable to remove previous dir "Processed":');
+                        end
                     end
-                end
-                for p=1:dims(4)
-                    filename    =   [defs.im_name '_d' int2str(day) '_' n_acq '_'];
-                    if p<=999   filename    =   [filename '0']; end
-                    if p<=99    filename    =   [filename '0'];  end
-                    if p<=9     filename    =   [filename '0'];   end             
-                    filename    =   [filename int2str(p) '.nii'];
-                    fprintf('       Image:   %s\n',filename);           
-                    path        =   fullfile(pathstr,n_acq,work_dir,filename);
-                    dim         =   uint16(dims(1:3));
-                    Vol         =   Img(:,:,:,p);
-                    create_nifti_vol(Vol,path,orient,r_out,idist,m_or,dim,FOV,resol,offset,tp);        
-                end
-               fprintf('-------------------------------------------------------------------\n');
+                    for p=1:dims(4)
+                        filename    =   [defs.im_name '_d' int2str(day) '_' n_acq '_'];
+                        if p<=999   filename    =   [filename '0']; end
+                        if p<=99    filename    =   [filename '0'];  end
+                        if p<=9     filename    =   [filename '0'];   end             
+                        filename    =   [filename int2str(p) '.nii'];
+                        fprintf('       Image:   %s\n',filename);           
+                        path        =   fullfile(pathstr,n_acq,work_dir,filename);
+                        dim         =   uint16(dims(1:3));
+                        Vol         =   Img(:,:,:,p);
+                        [path_out fname]=   create_nifti_vol(Vol,path,orient,r_out,idist,m_or,dim,FOV,resol,offset,tp);
+                        dest            =   flip_to_axial_nii(path_out,1);
+                    end
+                    this.vox(u,:)       =   resol;
+                    this.TR(u,:)        =   TR;             
+                    this.valid(u,1)     =   1;
+                   fprintf('-------------------------------------------------------------------\n');
+                    end
+                catch err
+                        err_file    =   fopen(err_path,'a+');     
+                        fprintf(err_file,'Error Preprocessing %s \r\n Acq %s \r\n\r\n',...
+                         this.paths_func,getReport(err));
+                        fclose(err_file);
+                        fclose('all'); 
+                        this.valid(u,1)     =   0;
+                     continue
+                end                
         end % END loop FUNCS TO NIFTI
-        
-        if ~isempty(TR)
-            defs.TR             =   TR;
-        end
+        this.paths_func     =   this.paths_func(logical(this.valid),:);
+        this.paths_ref      =   this.paths_ref(logical(this.valid),:);
+        this.vox            =   this.vox(logical(this.valid));
+        this.or             =   this.or(logical(this.valid));
+        this.TR             =   this.TR(logical(this.valid));
+
     %------------------------------------------------------------------------------------------------------------------------------------
     % REFS TO NIFTI loop  
     %____________________________________________________________________________________________________________________________________      
@@ -244,6 +270,7 @@ if ~defs.inifti
         result.p_ref_w  =   cellstr(this.paths_ref(:,:)); 
         result.vox      =   this.vox;
         result.or       =   this.or;
+        result.TR       =   this.TR;
         result.des_mtx  =   struct( ...
             'Nrest',    fNrest,...        
             'Nstim',    fNstim,...        

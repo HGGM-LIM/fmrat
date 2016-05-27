@@ -36,6 +36,6 @@ function [vol]=read_seq(path,dims,tp,endian,orient,r_out)
                 Img     =   flipdim(Img,3);                
             end
     end   
-        vol     =   Img(:,:,:,:);
+        vol     =   Img;
         
 end

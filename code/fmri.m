@@ -139,7 +139,7 @@ function fmri(varargin)
 %--------------------------------------------------------------------------
 %   INIT DEFS
 %--------------------------------------------------------------------------        
-global d t install work_dir
+global d t install work_dir prev_path
 if isunix 
     d='/media/fMRI_Ratas/'; 
 end
@@ -156,6 +156,7 @@ defs=struct( ...
     'im_name',      'Image',    ... %###    
     'anat_seq',     'RARE',     ... %###
     'func_seq',     'ePI_FMRI', ... %###
+    'RevZ',         0,          ... %### Reverse Z axis, for some Bruker data written to disk reversed
     'Nrest',        [],         ... %### Number of func.images acquired at rest
     'Nstim',        [],         ... %### Number of func.images acquired at stimulation
     'NR',           [],         ... %### Total number of images acquired
@@ -163,6 +164,7 @@ defs=struct( ...
     'duration',     [],         ... %### Durations of the stimulations (as defined in SPM, a scalar if constant)
     'cov',          [],         ... %### Optional covariables
     'TR',           [],         ... %### Repetition time in the MR sequence (in miliseconds)
+    'user_hrf',     [],         ... %### User defined haemodynamic response
     'preprocess',   true,       ... %### preprocess data -format conversion,files autodetection- (only Bruker)?
     'realign',      true,       ... %### realign series?
     'coreg',        true,       ... %### coregister masks?
@@ -208,15 +210,12 @@ spmpath     =   fileparts(which('spm.m'));
      fprintf('Add the Spm installation directory to your Matlab path'); 
  end
 
- 
-savepath(fullfile(install,'old_path.mat'));
-restoredefaultpath; 
-addpath(genpath(spmpath),'-0'); 
-addpath(genpath(install),'-0');
-
-
-spm('FMRI'); pause(3);
+prev_path   =   path;
+spm('FMRI'); pause(1);
 t0 = tic;
+restoredefaultpath; 
+addpath(genpath(spmpath)); 
+addpath(genpath(install));
 
 
   
@@ -377,24 +376,38 @@ else
     if nargin>=30 && ~isempty(varargin{30}) 
         defs.cov    =   varargin{30};     
     end     
-    
     if nargin>=31 && ~isempty(varargin{31}) 
-        defs.inifti         =   varargin{31};     
-    end  
-    if nargin>=32 && ~isempty(varargin{32}) 
-        defs.studies        =   varargin{32};     
-    end  
-    if nargin>=33 && ~isempty(varargin{33}) 
-        defs.data_struct    =   varargin{33};     
+        defs.RevZ           =   varargin{31};     
     end
+    if nargin>=32 && ~isempty(varargin{32}) 
+        defs.skip           =   varargin{32};     
+    end     
+    if nargin>=33 && ~isempty(varargin{33}) 
+        defs.cutoff         =   varargin{33};     
+    end   
     if nargin>=34 && ~isempty(varargin{34}) 
-        defs.rois_dir    =   varargin{34};     
+        defs.user_hrf       =   varargin{34};     
+    end     
+    if nargin>=35 && ~isempty(varargin{35}) 
+        defs.t_max          =   varargin{35};     
+    end       
+    if nargin>=36 && ~isempty(varargin{36}) 
+        defs.inifti         =   varargin{36};     
+    end  
+    if nargin>=37 && ~isempty(varargin{37}) 
+        defs.studies        =   varargin{37};     
+    end  
+    if nargin>=38 && ~isempty(varargin{38}) 
+        defs.data_struct    =   varargin{38};     
+    end
+    if nargin>=39 && ~isempty(varargin{39}) 
+        defs.rois_dir    =   varargin{39};     
     end    
     if (defs.inifti==1) && (isempty(defs.studies) || isempty(defs.data_struct))
        errordlg('Nifti format selected. Studies and data_struct must be filled.');
     end
-    if nargin>=35 && ~isempty(varargin{35}) 
-        defs.TR    =   varargin{35};     
+    if nargin>=40 && ~isempty(varargin{40}) 
+        defs.TR    =   varargin{40};     
     end 
 
     
@@ -580,7 +593,7 @@ switch lower(action)
             try 
                 spmmouse('load',[install filesep 'preset.mat']);
             catch
-                spmmouse('load',[install filesep 'spmmouse_modified' filesep 'mouse-C57.mat']);
+                spmmouse('load',[install filesep 'modified' filesep 'mouse-C57.mat']);
                 warning('No user preset was found: Using mouse SPMMouse defaults');
             end
         end
@@ -675,12 +688,21 @@ studies         =   fieldnames(data_struct);
                   
                   defaults.realign.estimate.sep         =   (vox(1)*2);
                   defaults.realign.estimate.quality     =   1;
-                  defaults.realign.estimate.fwhm        =   vox(1);          
+                  defaults.realign.estimate.fwhm        =   vox(1);
+                  defaults.realign.estimate.rtm         =   1;
                   spm_realign(files,defaults.realign.estimate);
                   defaults.realign.write.which          =   2;
                   spm_reslice(strvcat(files),defaults.realign.write);
-                  
-                   this.p_ref_w{i}	=   spm_select('FPList',proc,'^mean.*.nii');
+                   
+                  if defs.skip>0
+                      cd(proc);
+                      im_mean       =   spm_vol(spm_select('FPList',proc,'^mean.*.nii'));
+                      im_av         =   zeros(im_mean.dim);
+                      for im = (defs.skip+1):size(files,1)
+                          im_av     =   im_av + spm_read_vols(spm_vol(files(im,:)));     
+                      end
+                      spm_write_vol(im_mean,int16(im_av./numel((defs.skip+1):size(files,1))));
+                  end
                   
                catch err
                  err_file   =   fopen(err_path,'a+');
@@ -883,10 +905,15 @@ for st=1:size(studies,1)
                     mask        =   this.mask{i};
                 end
                 cov=[];
-                if isfield(defs,'p_ref')
-                    build_SPM (paths, onsets, duration, rp, proc, mask, defs.TR, defs.cov, defs.p_ref); 
+                if isfield(this,'TR') && ~isempty(this.TR(i,:))
+                    TR  =   this.TR(i,:);
                 else
-                    build_SPM (paths, onsets, duration, rp, proc, mask, defs.TR, defs.cov); 
+                    TR  =   defs.TR;
+                end
+                if isfield(defs,'p_ref')
+                    build_SPM (paths, onsets, duration, rp, proc, mask, TR, defs.cov, defs, defs.p_ref); 
+                else
+                    build_SPM (paths, onsets, duration, rp, proc, mask, TR, defs.cov,defs); 
                 end
                      cd(source_path);
             catch err
@@ -1013,8 +1040,18 @@ for st=1:size(studies,1)
         else
             ref_im	=   this.p_ref_w{i}.fname;
         end
-    else ref_im	=   this.p_ref_w{i};
+    else
+        ref_im	=   this.p_ref_w{i};
     end
+    % if p_ref_and p_ref_w are the same and are Image1 it means no 2dseq
+    % was found as anatomical, then take the mean if it exists
+
+    [route fname ext]   =   fileparts(ref_im);
+    im_mean             =   spm_select('FPList',proc,'^mean.*.nii');
+    if ~isempty(im_mean) && strcmp(this.p_ref{1},this.p_ref_w{1}) && ~isempty(regexp(fname,'^Image.*0001$'))
+        ref_im	=   spm_select('FPList',proc,'^mean.*.nii');                  
+    end
+
 
     %get rois
     rois    =   {};
@@ -1220,6 +1257,8 @@ end
 
 end
 
+global prev_path
+path(prev_path);
 fclose('all');
 
 
