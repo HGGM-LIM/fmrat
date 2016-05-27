@@ -15,16 +15,16 @@ function [vol]=read_seq(path,dims,tp,endian,orient,r_out)
                 Img     =   flipdim(Img,2);
 %                Img=flipdim(Img,1);
             else
-                Img     =   reshape(Img,[dims(2),dims(1),dims(3)]);
+                Img     =   reshape(Img,[dims(2),dims(1),dims(3),dims(4)]);
                 Img     =   flipdim(Img,2);   
             end
     
       
         case 'sagittal'
             if strcmp(r_out,'A_P') 
-                Img     =   reshape(Img,[dims(1),dims(3),dims(2)]);
+                Img     =   reshape(Img,[dims(1),dims(3),dims(2),dims(4)]);
             else 
-                Img     =   reshape(Img,[dims(2),dims(1),dims(3)]);
+                Img     =   reshape(Img,[dims(2),dims(1),dims(3),dims(4)]);
                 Img     =   flipdim(Img,2);
             end
 
