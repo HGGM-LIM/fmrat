@@ -574,14 +574,14 @@ figure(Fgraph);
 axes('Position',[0 0 1 1]);
 sc      =   spm('FontScale'); 
 if nSPM>0
-    text(0.03,top+0.03 , ['T MAP'], 'Units','normalized',...
+    text(0.03,top+0.03 , 'T MAP', 'Units','normalized',...
     'FontSize', 11.2,'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
-    name    =    sprintf('%s',['Functional: ' deblank(SPMVol(1,1).swd) deblank(filesep) 'SPM.mat']);
-    text(0.03,top-0.01 , name, 'Units','normalized',...
+    name    =    ['Functional: ' deblank(SPMVol(1,1).swd) deblank(filesep) 'SPM.mat'];
+    text(0.03,top-0.01 , strrep(strrep((name),'\','\\'),'_','-'), 'Units','normalized',...
         'FontSize', 8,'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');        
 end
-name    =    sprintf(['Background: ' deblank(Vbg.fname)]);
-text(0.03,top-0.03 , name, 'Units','normalized',...
+name    =    ['Background: ' deblank(Vbg.fname)];
+text(0.03,top-0.03 ,strrep(strrep((name),'\','\\'),'_','-'), 'Units','normalized',...
 'FontSize', 8,'HorizontalAlignment', 'left', 'VerticalAlignment', 'top'); 
 axis off
 
@@ -589,14 +589,14 @@ figure(hZmap);
 axes('Position',[0 0 1 1]);
 sc      =   spm('FontScale'); 
 if nSPM>0
-    text(0.03,top+0.03 , ['Z MAP'], 'Units','normalized',...
+    text(0.03,top+0.03 ,'Z MAP', 'Units','normalized',...
     'FontSize', 11.2,'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
-    name    =    ['Functional: ' deblank(SPMVol(1,1).swd) deblank(filesep) 'SPM.mat'];
-    text(0.03,top-0.01 , name, 'Units','normalized',...
-        'FontSize', 8,'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');        
+    name    =   ['Functional: ' deblank(SPMVol(1,1).swd) deblank(filesep) 'SPM.mat'];
+    text(0.03,top-0.01 , strrep(strrep((name),'\','\\'),'_','-'), 'Units','normalized',...
+    'FontSize', 8,'HorizontalAlignment', 'left', 'VerticalAlignment', 'top')        
 end
 name    =    ['Background: ' deblank(Vbg.fname)];
-text(0.03,top-0.03 , name, 'Units','normalized',...
+text(0.03,top-0.03 , strrep(strrep((name),'\','\\'),'_','-'), 'Units','normalized',...
 'FontSize', 8,'HorizontalAlignment', 'left', 'VerticalAlignment', 'top'); 
 axis off
 

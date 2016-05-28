@@ -1119,7 +1119,7 @@ for st=1:size(studies,1)
 
         %// Write fields 
         fmt_str = repmat('%s\t%s\n', 1, size(C, 2));
-        fprintf(fid, fmt_str(1:end - 1), C{:});
+        fprintf(fid, fmt_str(1:end - 2), C{:});
         fprintf(fid, '\r\n--------------------------------------------\r\n');
 
         list        =   defs.rois;
@@ -1185,7 +1185,7 @@ for st=1:size(studies,1)
         
         %// Write fields 
         fmt_str = repmat('%s\t%s\n', 1, size(C, 2));
-        fprintf(fid2, fmt_str(1:end - 1), C{:});
+        fprintf(fid2, fmt_str(1:end - 2), C{:});
         fprintf(fid2, '\r\n--------------------------------------------\r\n');
 
         list        =   defs.rois;
