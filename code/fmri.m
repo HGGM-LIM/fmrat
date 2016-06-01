@@ -585,10 +585,11 @@ switch lower(action)
         else   % if no preset was found at least use Spmmouse defaults in stead of human's
             [rs,sts]    =   spm_select('FPList',defs.rois_dir,'^(?i)ROI.*\.nii$');
             defs.rois   =   cellstr(rs);       
-            defs.mask = {[defs.rois_dir filesep 'mask.nii']};   
-            fid         =   fopen(defs.mask{1,1},'r');
-            if fid<1
+            fid         =   fopen([defs.rois_dir filesep 'mask.nii'],'r');
+            if isempty(defs.rois_dir) || fid<1
                 defs.mask   =   {''};
+            else
+                defs.mask = {[defs.rois_dir filesep 'mask.nii']};                   
             end
             try 
                 spmmouse('load',[install filesep 'preset.mat']);

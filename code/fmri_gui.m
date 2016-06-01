@@ -467,6 +467,7 @@ try
             set(gca,'XTickLabel',lb');
             xlim(handles.axes1,[1 NR*1000]);
             ylim(handles.axes1,[0 1.25]); 
+            set(handles.axes1,'Fontsize',7,'FontUnits','points');
             set(handles.edit31,'UserData',[1]);
             set(handles.uipanel8,'BackgroundColor',[0.867, 0.918, 0.976]);
             set(handles.text7,'BackgroundColor',[0.9,0.7,0.7]);              
@@ -530,6 +531,7 @@ try
             set(gca,'XTickLabel',lb');
             xlim(handles.axes1,[1 NR*1000]);
             ylim(handles.axes1,[0 1.25]); 
+            set(handles.axes1,'Fontsize',7,'FontUnits','points');
             set(handles.edit31,'UserData',[1]);
             set(handles.uipanel8,'BackgroundColor',[0.867, 0.918, 0.976]);
             set(handles.text7,'BackgroundColor',[0.9,0.7,0.7]);                
@@ -598,6 +600,7 @@ try
             set(gca,'XTickLabel',lb');
             xlim(handles.axes1,[1 NR*1000]);
             ylim(handles.axes1,[0 1.25]); 
+            set(handles.axes1,'Fontsize',7,'FontUnits','points');
             set(handles.edit31,'UserData',[1]);
             set(handles.uipanel8,'BackgroundColor',[0.867, 0.918, 0.976]);
             set(handles.text7,'BackgroundColor',[0.9,0.7,0.7]);
@@ -1016,6 +1019,7 @@ try
             set(gca,'XTickLabel',lb');
             xlim(handles.axes1,[1 NR*1000]);
             ylim(handles.axes1,[0 1.25]); 
+            set(handles.axes1,'Fontsize',7,'FontUnits','points');
             set(handles.edit31,'UserData',[1]);
             set(handles.uipanel8,'BackgroundColor',[0.867, 0.918, 0.976]);
             set(handles.text7,'BackgroundColor',[0.9,0.7,0.7]);            
@@ -1037,7 +1041,7 @@ try
             set(gca,'XTick',adv_paradigm.onsets*1000);
             lb=strread(num2str(adv_paradigm.onsets),'%s');
             set(gca,'XTickLabel',lb');
-            
+            set(handles.axes1,'Fontsize',7,'FontUnits','points');
             xlim(handles.axes1,[1 adv_paradigm.NR*1000]);
             ylim(handles.axes1,[0 1.25]); 
             set(handles.edit31,'UserData',[1]);
@@ -2228,7 +2232,7 @@ if isstruct(pdgm)
             set(gca,'XTick',pdgm.onsets*1000);
             lb=strread(num2str(pdgm.onsets),'%s');
             set(gca,'XTickLabel',lb');
-            
+            set(handles.axes1,'Fontsize',7,'FontUnits','points');
             xlim(handles.axes1,[1 pdgm.NR*1000]);
             ylim(handles.axes1,[0 1.25]); 
             set(handles.edit31,'UserData',[1]);
