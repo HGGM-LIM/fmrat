@@ -1,26 +1,27 @@
-function [orient,r_out,idist,m_or,dims,FOV,resol,offset,tp,endian,day,n_acq,n_coils,cmpx,scale,TR]=get_pars(path)
+function pars = get_pars(path)
 
 % FUNCTION get_pars.m
 % Extracts Bruker aquisition parameters from acqp, method and reco files
 
 
-global rotate
-
-    acq_dim     =   0;
-    scale       =   ones(4,1);
-    cmpx        =   0;
-    n_coils     =   1;
-    orient      =   '';
-    r_out       =   '';
-    idist       =   0;
-    m_or        =   zeros(3,2);
-    dims        =   zeros(4,1);
-    FOV         =   zeros(3,1);      %in mm
-    resol       =   zeros(3,1);   %in mm
-    offset      =   zeros(3,1);   %in mm
-    tp          =   '';
-    endian      =   'l';
-    n_acq       =   '';
+    pars.acq_dim     =   0;
+    pars.scale       =   ones(4,1);
+    pars.cmpx        =   0;
+    pars.n_coils     =   1;
+    pars.orient      =   '';
+    pars.r_out       =   '';
+    pars.idist       =   0;
+    pars.m_or        =   zeros(3,2);
+    pars.dims        =   zeros(4,1);
+    pars.FOV         =   zeros(3,1);      %in mm
+    pars.resol       =   zeros(3,1);   %in mm
+    pars.offset      =   zeros(3,1);   %in mm
+    pars.tp          =   '';
+    pars.endian      =   'l';
+    pars.n_acq       =   '';
+    pars.TR          =   0;
+    
+    
     matching    =   ['.*Di?a?([0-9]+).*\' filesep '.*'];
     if isunix 
         [a b c d e f]   =   regexpi(path,matching,'match','tokens');
@@ -31,7 +32,8 @@ global rotate
     path_acqp   =   [fileparts(fileparts(fileparts(path))) filesep 'acqp'];
     fid         =   fopen(deblank(path_acqp), 'rt');
     
-        %Reading method
+    
+    %Reading method
     path_method     =   [fileparts(fileparts(fileparts(path))) filesep 'method'];
     fid2            =   fopen(deblank(path_method), 'rt');
     while feof(fid2) == 0
@@ -39,15 +41,15 @@ global rotate
         tag     =   strread(line,'%s','delimiter','=');
         switch tag{1}
             case '##$PVM_SPackArrNSlices'
-                dims(3)     =   eval(fgetl(fid2));
+                pars.dims(3)     =   eval(fgetl(fid2));
             case '##$PVM_NRepetitions' 
-                dims(4)     =   eval(tag{2}); 
+                pars.dims(4)     =   eval(tag{2}); 
             case '##$PVM_ScanTime'
                 scan_time   =   eval(tag{2}); 
             case '##$PVM_SPackArrSliceOrient'
-                orient  =   fgetl(fid2);
+                pars.orient  =   fgetl(fid2);
             case '##$PVM_SPackArrReadOrient'
-                r_out   =   fgetl(fid2);
+                pars.r_out   =   fgetl(fid2);
             case '##$PVM_SPackArrGradOrient'
                 m       =   0;
                 while true
@@ -56,27 +58,14 @@ global rotate
                     if header(1)=='#' break; end
                     m       =   [m;strread(deblank(read))'];
                 end
-                
-                switch orient
-                    case 'axial' 
-                        if strcmp(r_out,'L_R') rotate=0;end
-                        if strcmp(r_out,'A_P') rotate=1;end
-                    case 'sagittal'
-                        if strcmp(r_out,'H_F') rotate=1;end
-                        if strcmp(r_out,'A_P') rotate=0;end
-                    case 'coronal'
-                        if strcmp(r_out,'H_F') rotate=1;end
-                        if strcmp(r_out,'L_R') rotate=0;end            
-                end                 
-                m_or        =   m(2:7);
-                if rotate m_or=[m_or(4:6),m_or(1:3)]; end
-                m_or        =   reshape(m_or,[3,2]);
-                m_or(3,:)   =   -m_or(3,:);
+                pars.m_or   =   m(2:10);
+                pars.m_or   =   reshape(pars.m_or,[3,3]);
+
         end
     end
     fclose(fid2);
     if exist('scan_time','var')
-        TR          =   scan_time/dims(4) ;
+        pars.TR          =   scan_time/pars.dims(4) ;
     end
     
     
@@ -86,33 +75,33 @@ global rotate
         tag     =   strread(line,'%s','delimiter','=');
         switch tag{1}
             case '##$ACQ_dim'
-                acq_dim     =   str2num(tag{2});
+                pars.acq_dim     =   str2num(tag{2});
             case '##$ACQ_slice_sepn'
-                if acq_dim==2
-                    idist       =   eval(fgetl(fid));
+                if pars.acq_dim==2
+                    pars.idist       =   eval(fgetl(fid));
                 end
             case '##$ACQ_slice_thick' 
-                if acq_dim==2              
-                    resol(3)    =   eval(tag{2});
+                if pars.acq_dim==2              
+                    pars.resol(3)    =   eval(tag{2});
                 end
             case '##$ACQ_slice_offset'
-                          slices        =   '';
+                          slices        =   [];
                           while true
                             read        =   fgetl(fid);
                             header      =   strread(read,'%c','delimiter','#');
-                            if strcmp(header(1),'#') break; end
-                            slices      =   [slices;strread(read,'%s','delimiter','\\ ')];
-                            offset(3)   =   eval(char(slices(floor(size(slices,1)/2)+1)));
+                            if strcmp(header(1),'#') ||strcmp(header(1),'$') break; end
+                            slices      =   [slices;strread(read,'%f','delimiter','\\ ')];
+                            pars.offset(3)   =   mean(slices);
                           end
             case '##$ACQ_read_offset'
                read         =   strread(fgetl(fid),'%f','delimiter','\\ '); 
-               offset(1)    =   read(1);           
+               pars.offset(1)    =   read(1);           
             case '##$ACQ_phase1_offset' 
                read         =   strread(fgetl(fid),'%f','delimiter','\\ '); 
-               offset(2)    =   read(1);  
+               pars.offset(2)    =   read(1);  
             case '##$ACQ_repetition_time'
                 if ~exist('TR','var')
-                    TR          =   eval(fgetl(fid));
+                    pars.TR          =   eval(fgetl(fid));
                 end
         end
     end
@@ -122,7 +111,7 @@ global rotate
     
     %Reading reco 
     [pathstr,nam,ext]   =   fileparts(fileparts(fileparts(fileparts(path))));
-    n_acq               =   nam;
+    pars.n_acq          =   nam;
     fid                 =   fopen(deblank([fileparts(path) filesep 'reco']),'rt');
     while feof(fid) == 0        
             line    =   fgetl(fid);
@@ -131,72 +120,127 @@ global rotate
                 case '##$RECO_fov'
                     if strcmp(tag{2},'( 2 )')
                         [a b]               =   strread(fgetl(fid),'%f %f');
-                        FOV(1)              =   10*a; 
-                        FOV(2)              =   10*b; %from cm to mm                        
+                        pars.FOV(1)              =   10*a; 
+                        pars.FOV(2)              =   10*b; %from cm to mm                        
                     elseif strcmp(tag{2},'( 3 )')
                         [a b c]               =   strread(fgetl(fid),'%f %f %f');
-                        FOV(1)              =   10*a; 
-                        FOV(2)              =   10*b; %from cm to mm
-                        FOV(3)              =   10*c;
+                        pars.FOV(1)              =   10*a; 
+                        pars.FOV(2)              =   10*b; %from cm to mm
+                        pars.FOV(3)              =   10*c;
                     end
                 case '##$RECO_size'
                     if strcmp(tag{2},'( 2 )')
-                        [dims(1) dims(2)]   =   strread(fgetl(fid),'%d %d');    
+                        [pars.dims(1) pars.dims(2)]   =   strread(fgetl(fid),'%d %d');    
                     elseif strcmp(tag{2},'( 3 )')
-                        [dims(1) dims(2) dims(3)]   =   strread(fgetl(fid),'%d %d %d');
-                        resol(3)            =   FOV(3)/dims(3);
-                        idist               =   resol(3);
+                        [pars.dims(1) pars.dims(2) pars.dims(3)]   =   strread(fgetl(fid),'%d %d %d');
+                        pars.idist               =   pars.resol(3);
                     end                    
                 case '##$RECO_wordtype'
-                    tp  =   tag{2};
-                    switch tp
+                    pars.tp  =   tag{2};
+                    switch pars.tp
                         case '_8BIT_USGN_INT'
-                            tp  =   'uint8';
+                            pars.tp  =   'uint8';
                         case '_16BIT_SGN_INT' 
-                            tp  =   'int16'; 
+                            pars.tp  =   'int16'; 
                         case '_32BIT_SGN_INT' 
-                            tp  =   'int32'; 
+                            pars.tp  =   'int32'; 
                         case '_32BIT_FLT' 
-                            tp  =   'float32';
+                            pars.tp  =   'float32';
                         case '_64BIT_FLT' 
-                            tp  =   'float64'; 
+                            pars.tp  =   'float64'; 
                         case '_8BIT_SGN_INT' 
-                            tp  =   'int8'; 
+                            pars.tp  =   'int8'; 
                         case '_16BIT_USGN_INT' 
-                            tp  =   'uint16'; 
+                            pars.tp  =   'uint16'; 
                         case '_32BIT_USGN_INT' 
-                            tp  =   'uint32';              
+                            pars.tp  =   'uint32';              
                     end
                 case '##$RECO_byte_order'
                     if strcmp (tag{2},'littleEndian')
-                        endian  =   'l';
+                        pars.endian  =   'l';
                     elseif strcmp (tag{2},'bigEndian')
-                        endian  =   'b';                        
+                        pars.endian  =   'b';                        
                     end
                 case '##$RecoNumInputChan'
-                    n_coils     =   str2num(tag{2});
+                    pars.n_coils     =   str2num(tag{2});
                 case '##$RECO_image_type'
                     if strmatch(tag{2},'COMPLEX_IMAGE')
-                        cmpx    =   1;
+                        pars.cmpx    =   1;
                     end
                 case '##$RecoScaleChan'
                     [a b c d]   =   strread(fgetl(fid),'%f %f %f %f');
                     if nnz([a b c d]) == 1
-                        scale   =   1;
+                        pars.scale   =   1;
                     else
-                        scale(1)=   a; 
-                        scale(2)=   b; 
-                        scale(3)=   c; 
-                        scale(4)=   d;
+                        pars.scale(1)=   a; 
+                        pars.scale(2)=   b; 
+                        pars.scale(3)=   c; 
+                        pars.scale(4)=   d;
                     end
             end  
     end 
     fclose(fid);
-    resol(1:2)  =   [FOV(1)/dims(1); FOV(2)/dims(2)];
-    if acq_dim==2
-        FOV(3)      =   (dims(3)-1)*idist+resol(3);
+    
+    
+    %resol
+    pars.resol(1:2)     =   [pars.FOV(1)/pars.dims(1); pars.FOV(2)/pars.dims(2)];
+    if pars.acq_dim==2
+        pars.FOV(3)     =   (pars.dims(3)-1)*pars.idist+pars.resol(3);
     end
-    dims        =   cast(dims,'int16');
+    pars.dims           =   cast(pars.dims,'int16');    
+    
+    % Position calculation. FOV, resol order
+    dim             =   pars.dims;
+    pars.resol(3)   =   pars.FOV(3)/double(pars.dims(3)); 
+    switch pars.orient
+        case 'axial' 
+            if strcmp(pars.r_out,'L_R')                     
+                pars.vect      =   [1,2,3];
+                pars.FOV    =   pars.FOV(pars.vect);                
+                half_vx     =   pars.resol(pars.vect)/2;  
+                pars.offset =   [pars.offset(1);pars.offset(2);-pars.offset(3)];                 
+                half_vx     =   pars.resol(pars.vect)/2;                  
+                m_or2       =   pars.m_or;                
+            elseif   strcmp(pars.r_out,'A_P')
+                pars.vect      =   [2,1,3];
+                pars.FOV    =   pars.FOV(pars.vect);                  
+                half_vx     =   pars.resol(pars.vect)/2;  
+                pars.offset =   [pars.offset(2);pars.offset(1);-pars.offset(3)]; 
+                m_or2       =   [pars.m_or(:,2) pars.m_or(:,1) pars.m_or(:,3)];                
+            end
+        case 'sagittal'
+            if strcmp(pars.r_out,'H_F')                 
+                pars.vect      =   [2,1,3];
+                pars.FOV    =   pars.FOV(pars.vect);  
+                half_vx     =   pars.resol(pars.vect)/2;                 
+                pars.offset =   [pars.offset(2);pars.offset(1);-pars.offset(3)];                 
+                m_or2       =   [pars.m_or(:,2) pars.m_or(:,1) pars.m_or(:,3)];                
+            elseif strcmp(pars.r_out,'A_P')
+                pars.vect      =   [1,2,3];
+                pars.FOV    =   pars.FOV(pars.vect); 
+                half_vx     =   pars.resol(pars.vect)/2;                  
+                pars.offset =   [pars.offset(1);pars.offset(2);-pars.offset(3)]; 
+                m_or2       =   [pars.m_or(:,1) pars.m_or(:,2) pars.m_or(:,3)];                
+            end
+        case 'coronal'
+            if strcmp(pars.r_out,'H_F')                 
+                pars.vect      =   [2,1,3];
+                pars.FOV    =   pars.FOV(pars.vect);        
+                half_vx     =   pars.resol(pars.vect)/2;                  
+                pars.offset =   [pars.offset(2);pars.offset(1);-pars.offset(3)];                 
+                m_or2       =   [pars.m_or(:,2) pars.m_or(:,1) pars.m_or(:,3)];                
+            elseif strcmp(pars.r_out,'L_R')
+                pars.vect      =   [1,2,3];
+                pars.FOV    =   pars.FOV(pars.vect);  
+                half_vx     =   pars.resol(pars.vect)/2;                  
+                pars.offset =   [pars.offset(1);pars.offset(2);-pars.offset(3)]; 
+                m_or2       =   [pars.m_or(:,1) pars.m_or(:,2) pars.m_or(:,3)];                
+            end        
+    end
+    shift       =   -pars.FOV/2-half_vx-pars.offset;
+    pars.pos0   =   m_or2*shift;
+    pars.m_or   =   m_or2;
+  
 
 end
 

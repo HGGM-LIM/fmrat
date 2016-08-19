@@ -156,7 +156,6 @@ defs=struct( ...
     'im_name',      'Image',    ... %###    
     'anat_seq',     'RARE',     ... %###
     'func_seq',     'ePI_FMRI', ... %###
-    'RevZ',         0,          ... %### Reverse Z axis, for some Bruker data written to disk reversed
     'Nrest',        [],         ... %### Number of func.images acquired at rest
     'Nstim',        [],         ... %### Number of func.images acquired at stimulation
     'NR',           [],         ... %### Total number of images acquired
@@ -377,37 +376,34 @@ else
         defs.cov    =   varargin{30};     
     end     
     if nargin>=31 && ~isempty(varargin{31}) 
-        defs.RevZ           =   varargin{31};     
-    end
+        defs.skip           =   varargin{31};     
+    end     
     if nargin>=32 && ~isempty(varargin{32}) 
-        defs.skip           =   varargin{32};     
-    end     
-    if nargin>=33 && ~isempty(varargin{33}) 
-        defs.cutoff         =   varargin{33};     
+        defs.cutoff         =   varargin{32};     
     end   
-    if nargin>=34 && ~isempty(varargin{34}) 
-        defs.user_hrf       =   varargin{34};     
+    if nargin>=33 && ~isempty(varargin{33}) 
+        defs.user_hrf       =   varargin{33};     
     end     
-    if nargin>=35 && ~isempty(varargin{35}) 
-        defs.t_max          =   varargin{35};     
+    if nargin>=34 && ~isempty(varargin{34}) 
+        defs.t_max          =   varargin{34};     
     end       
+    if nargin>=35 && ~isempty(varargin{35}) 
+        defs.inifti         =   varargin{35};     
+    end  
     if nargin>=36 && ~isempty(varargin{36}) 
-        defs.inifti         =   varargin{36};     
+        defs.studies        =   varargin{36};     
     end  
     if nargin>=37 && ~isempty(varargin{37}) 
-        defs.studies        =   varargin{37};     
-    end  
-    if nargin>=38 && ~isempty(varargin{38}) 
-        defs.data_struct    =   varargin{38};     
+        defs.data_struct    =   varargin{37};     
     end
-    if nargin>=39 && ~isempty(varargin{39}) 
-        defs.rois_dir    =   varargin{39};     
+    if nargin>=38 && ~isempty(varargin{38}) 
+        defs.rois_dir    =   varargin{38};     
     end    
     if (defs.inifti==1) && (isempty(defs.studies) || isempty(defs.data_struct))
        errordlg('Nifti format selected. Studies and data_struct must be filled.');
     end
-    if nargin>=40 && ~isempty(varargin{40}) 
-        defs.TR    =   varargin{40};     
+    if nargin>=39 && ~isempty(varargin{39}) 
+        defs.TR    =   varargin{39};     
     end 
 
     
@@ -458,7 +454,19 @@ else
         if defs_new.smooth
             defs.kernel         =   defs_new.kernel;  
         end
-        if isfield(defs_new,'inifti')       defs.inifti         =   defs_new.inifti;   end
+        if isfield(defs_new,'inifti')       
+            defs.inifti         =   defs_new.inifti;   
+        end
+        defs.emask          =   defs_new.emask; 
+        defs.skip           =   defs_new.skip;     
+        defs.cutoff         =   defs_new.cutoff;     
+        defs.user_hrf       =   defs_new.user_hrf;     
+        if isfield(defs_new,'t_max')       
+            defs.t_max          =   defs_new.t_max;  
+        end
+%         defs.studies        =   defs_new.studies;     
+%         defs.data_struct    =   defs_new.data_struct;     
+        defs.TR             =   defs_new.TR;     
         save Data.mat defs        
     end
     

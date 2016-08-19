@@ -37,7 +37,6 @@ else
     p               =   0.5;
     kl              =   1;
     defs.nifti      =   1;
-    defs.RevZ       =   0;
 end
 
 ver         =   lower(spm('ver'));
@@ -176,13 +175,10 @@ SPM.swd     =   proc;  %update path to ensure multiplatform
     xSPM            =   SPM;
     xSPM.title      =   cname{i};
     xSPM.Ic         =   i;
-    %SPM.xCon.Ic=i;
-    %        [SPM, SPMVol,p,k]=getSPM(path_SPM,cname{i},cons{i});
-    
-%     SPMVol(i).XYZ={};
+
     [SPM, SPMVol]	=   spm_getSPM(xSPM);
     
-%    eval(sprintf('save SPM%d.mat SPM;',i));
+
     switch ver
             case 'spm99'
                 Z               =   SPM.Z;
@@ -433,78 +429,6 @@ Vsize           =   diff(bbox)'+1;
 spacing         =   spacing*direction;
 
 
-% 
-% %  ------------------------------------------------------------------------
-% %   LOOP OVER SLICES TO AVOID DISPLAYING BLANKS
-% %  ------------------------------------------------------------------------
-% 
-% nim             =   0;
-% nz_start        =   0;
-% nTalL           =   0;
-% 
-% 
-% 
-% for n = 1:nImgs
-%     
-%     %  --------------------------------------------------------------------------
-%     % get the slice at location, L, of the background image
-%     %----------------------------------------------------------------------------
-%   
-% %    L      = VbgVox.*floor(TalL./VbgVox);
-%     L      = VbgVox.*(TalL./VbgVox)*100;    %********************************************************************************************
-%     switch orCode
-%         
-%         case 1             % SAGITTAL
-%             
-%             T0 = [0  1 0    -bbox(1,2)  ;...
-%                     0  0 1    -bbox(1,3)  ;...
-%                     1  0 0    L(1)         ;...
-%                     0  0 0     1];
-%             
-%             i = 2;   j = 3; 
-% 
-%         case 2             % CORONAL
-%             
-%             T0 = [1 0 0    -bbox(1,1)  ;...
-%                     0 0 1    -bbox(1,3)  ;...
-%                     0 1 0   L(2)         ;...
-%                     0 0 0     1];  
-%             
-%             i = 1;   j = 3;     
-%             
-%         case 3             % TRANSAXIAL
-%             
-%             T0 = [1  0  0    -bbox(1,1)  ;...
-%                     0  1  0    -bbox(1,2)  ;...
-%                     0  0  1    L(3)         ;...
-%                     0  0  0     1     ];            
-%             i = 1;   j = 2;
-%             
-%     end
-%     
-%     sliceDims   =   [Vsize(i) Vsize(j)];
-%     matr        =   diag([0.01,0.01,0.01,1])\A;
-% %     T0(3,4)     =   -T0(3,4); 
-%     kk          =   inv(T0*matr);                %*************************************************************************************   
-%     D           =   spm_slice_vol(Vbg, kk, sliceDims, 1);
-% %     slice_id            =   zeros(1,3);
-% %     slice_id(orCode)    =   n;
-% %     scale               =   [0.01, 0.01, 0.01]./VbgVox;
-% %     transf              =   [slice_id, zeros(1,3), scale, 0,0,0];
-% %     D         =   spm_slice_vol(Vbg, spm_matrix(transf), sliceDims, 1);
-%     if any(D(:)~=0)
-%         if nz_start == 0 
-%             nTalL       =   TalL(orCode);
-%             nz_start    =   n; 
-%         end
-%         nim     =   nim+1; 
-%     end
-%      TalL(orCode) = TalL(orCode) + spacing; 
-% end
-% 
-% TalL(orCode)    =	nTalL;
-% nImgs           =   nim;
-
 maxRow          =   floor(sqrt(nImgs));
 maxCol          =   ceil(nImgs/maxRow);
 %*************************************************************************************************************************************
@@ -532,9 +456,6 @@ spm_figure('Clear');
 % Set the Fgraph figure colormap
 %-----------------------------------------------------------------------------------
 
-% if bgWhite
-%     cmap(1,:) = [1 1 1];   % set first color slot (bg color) to white
-% end
 figure(Fgraph)
 pos   =   get(Fgraph,'Position');
 set(Fgraph,'PaperUnits','centimeters');
@@ -613,6 +534,7 @@ for n = 1:nImgs
   
 %   L      = VbgVox.*floor(TalL./VbgVox)*100;
      L      =    VbgVox.*(TalL./VbgVox)*100;    %********************************************************************************************
+    Pos_mm  =    TalL(orCode);       
     switch orCode
         
         case 1             % SAGITTAL
@@ -645,17 +567,13 @@ for n = 1:nImgs
     
     sliceDims   =   [Vsize(i) Vsize(j)];
     matr        =   diag([0.01,0.01,0.01,1])\A;
-    if defs.RevZ
-        T0(3,4)     =   -T0(3,4);
+    T1          =   T0;
+    if A(3,3)<0
+        T1(3,4)     =   -T1(3,4);
     end
-    kk          =   inv(T0*matr);                %****************************************************************************************************   
+    kk          =   inv(T1*matr);                %****************************************************************************************************   
     Dbg         =   spm_slice_vol(Vbg, kk, sliceDims, 1);
-%     slice_id            =   zeros(1,3);
-%     slice_id(orCode)    =   n;
-%     scale               =   [0.01, 0.01, 0.01]./VbgVox;
-%     transf              =   [slice_id, zeros(1,3), scale, 0,0,0];
-%     Dbg         =   spm_slice_vol(Vbg, spm_matrix(transf), sliceDims, 1);
-    
+
     
     %  ----------------------------------------------------------
     %  Contrast enhancement of background (optional)
@@ -725,22 +643,21 @@ for n = 1:nImgs
 % 
         matr        =   SPMExtras(k).M;
         matr        =   diag([0.01,0.01,0.01,1])\matr;
-%         T0(3,4)     =   -T0(3,4);       
-        kk2         =   inv(T0*matr);
+        T2          =   T0;
+        if matr(3,3)<0
+            T2(3,4)     =   -T2(3,4); 
+        else
+            Pos_mm      =   -TalL(orCode);            
+        end
+        kk2         =   inv(T2*matr);
         T           =   spm_slice_vol(Vspm, kk2, sliceDims, SPMinterp);  %*******************************************
         Zs          =   spm_slice_vol(Zspm, kk2, sliceDims, SPMinterp);  %*******************************************       
-%     slice_id            =   zeros(1,3);
-%     slice_id(orCode)    =   n;
-%     scale               =   [0.01, 0.01, 0.01]./SPMVol(1,1).VOX;
-%     transf              =   [slice_id, zeros(1,3), scale, 0,0,0];
-%         T           =   spm_slice_vol(Vspm, spm_matrix(transf), sliceDims, SPMinterp);
-%         Zs          =   spm_slice_vol(Zspm, spm_matrix(transf), sliceDims, SPMinterp);
+
         
         %--------------------------------------------------------
         %  Merge Overlay, T, with composite overlay image, iSPM.
         %--------------------------------------------------------
   
- 
         switch nSPM
             case 1
                 Zmax    =   max(SPMVol(k).Z);   
@@ -842,8 +759,7 @@ for n = 1:nImgs
 
         axes('Position',[mCol*(w+fHoriz) top-(mRow+1)*(h+fVert)-(1.5*fVert) w h])
 
-        Dbg1    =   rot90(Dbg1);
-        Dbg1    =   fliplr(Dbg1);
+        Dbg1    =   rot90(Dbg1,1);
         himg    =   image(Dbg1);
         axis image; 
         sc      =   spm('FontScale');    
@@ -851,7 +767,7 @@ for n = 1:nImgs
 
 
     %     if (method_f_exists && method_bg_exists)
-        Lstr = sprintf('%s %0.3g mm', xLbl(orCode,:), TalL(orCode));%**************************************************************************
+        Lstr = sprintf('%s %0.3g mm', xLbl(orCode,:), Pos_mm);%**************************************************************************
         text(.5, -.01*h, Lstr, 'Units', 'normalized','FontSize', 8,'HorizontalAlignment', 'center', 'VerticalAlignment', 'top');
     %     end
         hold on        
@@ -867,15 +783,14 @@ for n = 1:nImgs
         figure(hZmap);    
         axes('Position',[mCol*(w+fHoriz) top-(mRow+1)*(h+fVert)-(1.5*fVert) w h])
 
-        Dbg1    =   rot90(Dbg1);
-        Dbg1    =   fliplr(Dbg1);
+        Dbg1    =   rot90(Dbg1,1);
         himg    =   image(Dbg1);
         axis image; 
         sc      =   spm('FontScale');    
         axis off
 
     %     if (method_f_exists && method_bg_exists)
-        Lstr = sprintf('%s %0.3g mm', xLbl(orCode,:), TalL(orCode));%**************************************************************************
+        Lstr = sprintf('%s %0.3g mm', xLbl(orCode,:), Pos_mm);%**************************************************************************
         text(.5, -.01*h, Lstr, 'Units', 'normalized','FontSize', 8,'HorizontalAlignment', 'center', 'VerticalAlignment', 'top');
     %     end
 
@@ -948,11 +863,7 @@ end;
 pairs       =   [1 3 2; 1 5 4; 2 6 4; 1 9 8; 2 10 8; 4 12 8] + nGrays;
 triples     =   [0 1 0 2 7 4; 0 1 0 2 11 8; 0 1 0 4 13 8; 0 2 0 4 14 8] + nGrays;
 
-% if nSPM == 2 
-%    hAx = axes('Position', [.02 fVert .08 12/WIN(4)]);
-%    image(193);
-%    axis off;
-% end;
+
 
 if nSPM ~= 2
     for n = 1:nSPM
@@ -1004,11 +915,6 @@ end;
 pairs       =   [1 3 2; 1 5 4; 2 6 4; 1 9 8; 2 10 8; 4 12 8] + nGrays;
 triples     =   [0 1 0 2 7 4; 0 1 0 2 11 8; 0 1 0 4 13 8; 0 2 0 4 14 8] + nGrays;
 
-% if nSPM == 2 
-%    hAx = axes('Position', [.02 fVert .08 12/WIN(4)]);
-%    image(193);
-%    axis off;
-% end;
 
 if nSPM ~= 2
     for n = 1:nSPM

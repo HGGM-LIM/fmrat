@@ -13,6 +13,7 @@ if ~defs.inifti
     TR          =   defs.TR;
     func_seq    =	defs.func_seq;
     anat_seq    =   defs.anat_seq;
+    day         =   '';
     %___________________________Search for '2dseq' with the functional pulseprogram______________________________________________________
 
 
@@ -165,46 +166,49 @@ if ~defs.inifti
     %____________________________________________________________________________________________________________________________________    
         if isempty(this.paths_func) errordlg(['No functional images with ' func_seq ' method were found']); return; end
         this.or     =   cell(size(this.paths_func,1),1);
-        this.vox    =   zeros(size(this.paths_func,1),3);    
+        this.vox    =   zeros(size(this.paths_func,1),3);   
+        this.valid  =   zeros(size(this.paths_func,1),1);
+        this.TR     =   zeros(size(this.paths_func,1),1);        
         for u=1:size(this.paths_func,1)
             try            
                 fprintf('-------------------------------------------------------------------\n');        
                 fprintf('Functional to NIFTI:   %s\n',this.paths_func(u,:));  
-                [orient,r_out,idist,m_or,dims,FOV,resol,offset,tp,endian,day,n_acq,n_coils,cmpx,scale,TR]=get_pars(this.paths_func(u,:));
-                if dims(4)<3 || dims(4)~= defs.NR
+                pars    =   get_pars(this.paths_func(u,:));
+                if pars.dims(4)<3 || pars.dims(4)~= defs.NR
                     this.valid(u,1)     =   0;
                     continue
                 else
-                    this.or{u}          =   cellstr(orient);
-                    [Img]               =   read_seq(this.paths_func(u,:),dims,tp,endian,orient,r_out);
+                    this.or{u}          =   cellstr(pars.orient);
+                    [Img]               =   read_seq(this.paths_func(u,:),pars);
                     [pathstr,nam,ext]   =   fileparts(fileparts(fileparts(fileparts(this.paths_func(u,:)))));
                     n_acq               =   nam; 
                     [s,mess,messid]     =   mkdir(fullfile(pathstr,n_acq),work_dir);
                     if ~isempty(mess) 
-                        [succ,errm,m]   =   rmdir(fullfile(pathstr,n_acq,work_dir),'s');
+                        [succ,errm,m]   =   rmdir(fullfile(pathstr,pars.n_acq,work_dir),'s');
                         if succ 
-                            mkdir(fullfile(pathstr,n_acq),work_dir); 
+                            mkdir(fullfile(pathstr,pars.n_acq),work_dir); 
                         else
                             err         =   ['Please check the folder "Processed" is not in use. ' ...
                                 'Otherwise Matlab may also be using it, try to close and open Matlab again.'];
                             errordlg(err,'Unable to remove previous dir "Processed":');
                         end
                     end
-                    for p=1:dims(4)
-                        filename    =   [defs.im_name '_d' int2str(day) '_' n_acq '_'];
+                    frames          =   pars.dims(4);
+                    for p=1:frames
+                        filename    =   [defs.im_name '_d' int2str(day) '_' pars.n_acq '_'];
                         if p<=999   filename    =   [filename '0']; end
                         if p<=99    filename    =   [filename '0'];  end
                         if p<=9     filename    =   [filename '0'];   end             
                         filename    =   [filename int2str(p) '.nii'];
                         fprintf('       Image:   %s\n',filename);           
-                        path        =   fullfile(pathstr,n_acq,work_dir,filename);
-                        dim         =   uint16(dims(1:3));
+                        path        =   fullfile(pathstr,pars.n_acq,work_dir,filename);
+                        pars.dims   =   uint16(pars.dims(1:3));
                         Vol         =   Img(:,:,:,p);
-                        [path_out fname]=   create_nifti_vol(Vol,path,orient,r_out,idist,m_or,dim,FOV,resol,offset,tp);
-                        dest            =   flip_to_axial_nii(path_out,1);
+                        [path_out fname]=   create_nifti_vol(Vol,path,pars);
                     end
-                    this.vox(u,:)       =   resol;
-                    this.TR(u,:)        =   TR;             
+                    pars.dims       =   [pars.dims;frames];                    
+                    this.vox(u,:)       =   pars.resol;
+                    this.TR(u,:)        =   pars.TR;             
                     this.valid(u,1)     =   1;
                    fprintf('-------------------------------------------------------------------\n');
                     end

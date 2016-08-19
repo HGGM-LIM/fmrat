@@ -134,7 +134,6 @@ set(handles.togglebutton4,'Value',0);
 set(handles.togglebutton5,'Value',0);
 
 
-set(handles.checkbox16,'Value',0);
 set(handles.edit33,'String','0');
 set(handles.edit36,'String','128');
 set(handles.uipanel22,'UserData',[]);
@@ -322,7 +321,6 @@ if ~isempty(adv_dat) && isfield(adv_dat,'user_hrf')
 end
 anat_seq =      get(handles.edit29,'String');
 func_seq =      get(handles.edit30,'String');
-RevZ =          get(handles.checkbox16,'Value');
 fwe=            get(handles.radiobutton19,'Value');
 p=              str2num(get(handles.edit24,'String'));
 k=              str2num(get(handles.edit25,'String'));
@@ -346,7 +344,7 @@ if eval(ok)
     set(handles.uipanel8,'BackgroundColor',[0.906,0.906,0.906]);
     fmri(action,sel_dir,sp,atlas_dir,sm,coreg,2,anat_seq,func_seq,NR,Nrest,...
         Nstim,0,fwe,p,k,custom_atlas,custom_resol,rx,ry,rz,sx,preserve,preprocess,...
-        realign, design,estimate, display, adv_paradigm,adv_cov,RevZ, skip,cutoff,user_hrf,t_max,0,[],[],rois_dir);
+        realign, design,estimate, display, adv_paradigm,adv_cov, skip,cutoff,user_hrf,t_max,0,[],[],rois_dir);
 else
     if ~(isdir(sel_dir)) 
         set(handles.edit1,'String','Not valid');
@@ -679,7 +677,6 @@ block_ok =      get(handles.edit31,'UserData');
 NR =            str2num(get(handles.edit31,'String'));
 Nrest =         str2num(get(handles.edit2,'String'));
 Nstim =         str2num(get(handles.edit4,'String'));
-RevZ =          get(handles.checkbox16,'Value');
 skip        =   str2num(get(handles.edit33,'String'));
 cutoff      =   str2num(get(handles.edit36,'String'));
 adv_dat     =   get(handles.uipanel22,'UserData');
@@ -726,7 +723,7 @@ if eval(ok)
                 'anat_seq','func_seq','coreg','custom_atlas','sp',      ...
                 'atlas_dir','custom_resol','rx','ry','rz','sm','fwe',   ...
                 'p','k','sx','prep','rea','des','tim','dis','preserve', ...
-                'rois_dir','adv_paradigm','adv_cov','RevZ','skip','cutoff','user_hrf','t_max');
+                'rois_dir','adv_paradigm','adv_cov','skip','cutoff','user_hrf','t_max');
             fclose all;
         catch
             errordlg('Cannot save config file here. Check folder permissions');
@@ -880,7 +877,6 @@ set(handles.togglebutton4,'Value',0);
 set(handles.togglebutton5,'Value',0);
 
 set(handles.uipanel22,'UserData',[]);
-set(handles.checkbox16,'Value',0);
 set(handles.edit33,'String','0');
 set(handles.edit36,'String','128');
 
@@ -913,7 +909,6 @@ try
     set(handles.edit31,'UserData',cast(cast(block_ok,'uint8'),'logical'));
     set(handles.edit29,'String',num2str(anat_seq));
     set(handles.edit30,'String',num2str(func_seq));     
-    set(handles.checkbox16,'Value',cast(cast(RevZ,'uint8'),'logical'));
     set(handles.edit26,'String',deblank(rois_dir));      
     set(handles.checkbox3,'Value',cast(cast(coreg,'uint8'),'logical'));
     set(handles.checkbox15,'Value',cast(cast(preserve,'uint8'),'logical'));
@@ -2283,16 +2278,6 @@ else
         'Please enter NR in the corresponding edit box or enter an advanced paradigm through "Advanced" button']);
 end
 
-
-
-
-% --- Executes on button press in checkbox16.
-function checkbox16_Callback(hObject, eventdata, handles)
-% hObject    handle to checkbox16 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hint: get(hObject,'Value') returns toggle state of checkbox16
 
 
 

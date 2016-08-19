@@ -225,7 +225,6 @@ if ~isempty(adv_dat) && isfield(adv_dat,'user_hrf')
     user_hrf        =   adv_dat.user_hrf;
     t_max           =   adv_dat.t_max;    
 end
-RevZ =          0;%get(handles.checkbox16,'Value');
 fwe=            get(handles.radiobutton8,'Value');
 p=              str2num(get(handles.edit23,'String'));
 k=              str2num(get(handles.edit24,'String'));
@@ -252,7 +251,7 @@ if eval(ok)
     cputime,
     eval(['fmri(action,sel_dir,sp,atlas_dir,sm,coreg,mode_reg,anat_seq,func_seq,'...
         'NR,Nrest,Nstim,0,fwe,p,k,custom_atlas,custom_resol,rx,ry,rz,sx,preserve,preprocess,' ...
-        'realign, design,estimate, display,adv_paradigm, adv_cov,RevZ, skip,cutoff,user_hrf,t_max,' ...
+        'realign, design,estimate, display,adv_paradigm, adv_cov, skip,cutoff,user_hrf,t_max,' ...
         '1,studies,data_struct,rois_dir, TR)']);
 
 elseif ~(isdir(sel_dir)) 
