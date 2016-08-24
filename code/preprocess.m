@@ -13,7 +13,7 @@ if ~defs.inifti
     TR          =   defs.TR;
     func_seq    =	defs.func_seq;
     anat_seq    =   defs.anat_seq;
-    day         =   '';
+%     day         =   '';
     %___________________________Search for '2dseq' with the functional pulseprogram______________________________________________________
 
 
@@ -195,7 +195,7 @@ if ~defs.inifti
                     end
                     frames          =   pars.dims(4);
                     for p=1:frames
-                        filename    =   [defs.im_name '_d' int2str(day) '_' pars.n_acq '_'];
+                        filename    =   [defs.im_name '_' pars.n_acq '_'];
                         if p<=999   filename    =   [filename '0']; end
                         if p<=99    filename    =   [filename '0'];  end
                         if p<=9     filename    =   [filename '0'];   end             
@@ -238,15 +238,15 @@ if ~defs.inifti
                     %if ~strmatch(deblank(this.paths_ref(k,:)),'none', 'exact')
                     temp_path               =   deblank(this.paths_func(k,:));
                     [pathstr,n_acq,ext]     =   fileparts(fileparts(fileparts(fileparts(this.paths_func(k,:)))));
-                    matching                =   ['.*Di?a?([0-9]+).*\' filesep '.*'];
-                    if isunix 
-                        [a b c d e f]       =   regexpi(path,matching,'match','tokens');
-                    else
-                        [a b c d e f]       =   regexpi(path,matching,'match','split');
-                    end
-                    day         =   str2num(char(path(e{1,:})));
+%                     matching                =   ['.*Di?a?([0-9]+).*\' filesep '.*'];
+%                     if isunix 
+%                         [a b c d e f]       =   regexpi(path,matching,'match','tokens');
+%                     else
+%                         [a b c d e f]       =   regexpi(path,matching,'match','split');
+%                     end
+%                     day         =   str2num(char(path(e{1,:})));
                     temp_path   =   [fileparts(fileparts(fileparts(temp_path))) filesep work_dir filesep...
-                        'Image_d' int2str(day) '_' n_acq '_0001.nii'];
+                        'Image_' n_acq '_0001.nii'];
                     if isempty(refs) 
                         refs    =    temp_path; 
                     else

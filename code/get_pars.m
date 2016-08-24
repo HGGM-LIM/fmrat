@@ -22,13 +22,13 @@ function pars = get_pars(path)
     pars.TR          =   0;
     
     
-    matching    =   ['.*Di?a?([0-9]+).*\' filesep '.*'];
-    if isunix 
-        [a b c d e f]   =   regexpi(path,matching,'match','tokens');
-    else
-        [a b c d e f]   =   regexpi(path,matching,'match','split');
-    end
-    day         =   str2num(char(path(e{1,:})));
+%     matching    =   ['.*Di?a?([0-9]+).*\' filesep '.*'];
+%     if isunix 
+%         [a b c d e f]   =   regexpi(path,matching,'match','tokens');
+%     else
+%         [a b c d e f]   =   regexpi(path,matching,'match','split');
+%     end
+%     day         =   str2num(char(path(e{1,:})));
     path_acqp   =   [fileparts(fileparts(fileparts(path))) filesep 'acqp'];
     fid         =   fopen(deblank(path_acqp), 'rt');
     
