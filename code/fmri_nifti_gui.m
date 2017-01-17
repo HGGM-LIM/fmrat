@@ -23,7 +23,7 @@ function varargout = fmri_nifti_gui(varargin)
 
 % Edit the above text to modify the response to help fmri_nifti_gui
 
-% Last Modified by GUIDE v2.5 26-May-2016 23:49:25
+% Last Modified by GUIDE v2.5 25-Aug-2016 16:50:42
 
 % Begin initialization code - DO NOT EDIT
 global test
@@ -121,7 +121,7 @@ set(handles.togglebutton10,'Value',0);
 set(handles.edit30,'String','0');
 set(handles.edit31,'String','128');
 set(handles.uipanel20,'UserData',[]);
-
+set(handles.popupmenu5,'Value',1);
 % UIWAIT makes fmri_nifti_gui wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
 
@@ -228,6 +228,14 @@ end
 fwe=            get(handles.radiobutton8,'Value');
 p=              str2num(get(handles.edit23,'String'));
 k=              str2num(get(handles.edit24,'String'));
+disp_or     =   get(handles.popupmenu5,'Value');
+if disp_or==1
+    disp_or     =   4;
+else
+    disp_or     =   disp_or-1;
+end
+
+
 anat_seq=       '';
 func_seq=       '';
 mode_reg=2;
@@ -252,7 +260,7 @@ if eval(ok)
     eval(['fmri(action,sel_dir,sp,atlas_dir,sm,coreg,mode_reg,anat_seq,func_seq,'...
         'NR,Nrest,Nstim,0,fwe,p,k,custom_atlas,custom_resol,rx,ry,rz,sx,preserve,preprocess,' ...
         'realign, design,estimate, display,adv_paradigm, adv_cov, skip,cutoff,user_hrf,t_max,' ...
-        '1,studies,data_struct,rois_dir, TR)']);
+        'disp_or,1,studies,data_struct,rois_dir, TR)']);
 
 elseif ~(isdir(sel_dir)) 
         set(handles.edit14,'String','Not valid');
@@ -379,6 +387,12 @@ end
 fwe=            get(handles.radiobutton8,'Value');
 p =             str2num(get(handles.edit23,'String'));
 k =             str2num(get(handles.edit24,'String'));
+disp_or     =   get(handles.popupmenu5,'Value');
+if disp_or==1
+    disp_or     =   4;
+else
+    disp_or     =   disp_or-1;
+end
 TR          =   str2num(get(handles.edit28,'String'));
 
 
@@ -402,7 +416,7 @@ if eval(ok)
             save(fullpath,'sel_dir','data','struct_ok','block_ok','NR','Nrest','Nstim',...
                 'coreg','custom_atlas','sp','atlas_dir','custom_resol','rx','ry','rz',...
                 'rea','des','tim','dis','sm','fwe','p','k','sx','preserve','rois_dir',...
-                'TR','adv_paradigm','adv_cov','skip','cutoff','user_hrf','t_max');
+                'TR','adv_paradigm','adv_cov','skip','cutoff','user_hrf','t_max','disp_or');
             fclose all;            
         catch
             errordlg('Cannot save config file here. Check folder permissions');
@@ -538,7 +552,7 @@ set(handles.togglebutton8,'Value',0);
 set(handles.togglebutton9,'Value',0);
 set(handles.togglebutton10,'Value',0);
 set(handles.uipanel20,'UserData',[]);
-
+set(handles.popupmenu5,'Value',1);
 
 % Get config file
 sel_dir=get(handles.edit14,'String');    
@@ -669,6 +683,7 @@ try
     set(handles.radiobutton7,'Value',~fwe);    
     set(handles.edit23,'String',num2str(p));    
     set(handles.edit24,'String',num2str(k));
+    set(handles.popupmenu5,'Value',disp_or+1);    
     set(handles.checkbox10,'Value',cast(cast(rea,'uint8'),'logical'));
     set(handles.checkbox6,'Value',cast(cast(des,'uint8'),'logical'));
     set(handles.checkbox7,'Value',cast(cast(tim,'uint8'),'logical'));
@@ -2060,6 +2075,29 @@ function edit30_CreateFcn(hObject, eventdata, handles)
 % handles    empty - handles not created until after all CreateFcns called
 
 % Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on selection change in popupmenu5.
+function popupmenu5_Callback(hObject, eventdata, handles)
+% hObject    handle to popupmenu5 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns popupmenu5 contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from popupmenu5
+
+
+% --- Executes during object creation, after setting all properties.
+function popupmenu5_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to popupmenu5 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
 %       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');

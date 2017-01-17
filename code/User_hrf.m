@@ -57,6 +57,7 @@ handles.output = hObject;
 
 % Update handles structure
 guidata(hObject, handles);
+
 if ~isempty(get(hObject,'Userdata')) || (~isempty(varargin) && ~isempty(varargin{1}) && ~isempty(varargin{2}))
     if ~isempty(varargin{1}) && ~isempty(varargin{2})
         uhrf        =   varargin{1};
@@ -156,7 +157,8 @@ if ~isempty(uhrf) && isnumeric(uhrf) && ~isempty(t_max) && isnumeric(t_max) && i
             x       =   linspace(0,t_max,length(uhrf));
             y       =   uhrf; 
             plot(handles.axes1,x,y,' -b');
-            ylim(handles.axes1,[0 max(uhrf(:))*1.2]);     
+            ylim(handles.axes1,[min(uhrf(:))*1.2 max(uhrf(:))*1.2]);
+            xlim(handles.axes1,[0,t_max]);
 else 
         set(handles.edit1,'String','');
         set(handles.edit2,'String','5')
@@ -244,7 +246,8 @@ if ~isempty(uhrf) && isnumeric(uhrf) && ~isempty(t_max) && isnumeric(t_max) && i
             x       =   linspace(0,t_max,length(uhrf));
             y       =   uhrf; 
             plot(handles.axes1,x,y,' -b');
-            ylim(handles.axes1,[0 max(uhrf(:))*1.2]);     
+            ylim(handles.axes1,[min(uhrf(:))*1.2 max(uhrf(:))*1.2]); 
+            xlim(handles.axes1,[0,t_max]);            
 else 
         set(handles.edit1,'String','');
         set(handles.edit2,'String','5')

@@ -142,7 +142,7 @@ if ~defs.inifti
                 ref_path    =   'none';
                 for k=1:size(this.methods,1)-1
                     if strcmp(deblank(this.methods(k,:)),anat_seq) && ...
-                       strcmp(deblank(this.orients(k,:)),deblank(this.orients(size(this.orients,1),:))) && ...
+                       ...%strcmp(deblank(this.orients(k,:)),deblank(this.orients(size(this.orients,1),:))) && 
                        this.nos(k,:)>last_tripilot
                         ref_path    =   this.dat2(k,:);
                     end

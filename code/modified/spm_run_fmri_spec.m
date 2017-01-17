@@ -91,8 +91,9 @@ else
         case 'fir'
             SPM.xBF.name = 'Finite Impulse Response';
         case 'user'
-            SPM.xBF.name = 'User';   
-            SPM.xBF.hrf  = job.bases.(bf).user_bf;
+            SPM.xBF.name    = 'User';   
+            SPM.xBF.hrf     = job.bases.(bf).user_bf;
+            SPM.xBF.length  = job.bases.(bf).length;
         otherwise
             error('Unknown basis functions.');
     end

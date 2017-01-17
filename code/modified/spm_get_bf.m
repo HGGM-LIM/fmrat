@@ -120,8 +120,8 @@ switch xBF.name
  
     case {'User'}
     %----------------------------------------------------------------------
-    bf    = xBF.hrf;    
-    
+    bf          = xBF.hrf;    
+    xBF.length  = xBF.length;
     
 otherwise
     %-Microtime resolution

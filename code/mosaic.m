@@ -34,9 +34,9 @@ else
     [path_SPM sts]  =   spm_select(1,'mat','Select your SPM');
     proc            =   fileparts(path_SPM);
     fwe             =   0;
-    p               =   0.5;
-    kl              =   1;
-    defs.nifti      =   1;
+    p               =   0.001;
+    kl              =   12;
+    defs.inifti     =   1;
 end
 
 ver         =   lower(spm('ver'));
@@ -67,53 +67,58 @@ catch
     Vbg     =   spm_vol(bgfn);
 end
 
-%Create orCode from method file
-%*************************************************************************************************************************************
-a=strread(Vbg.fname,'%s','delimiter',[filesep filesep]);
 
-k=0;result='';
-for i=1:size(a,1) 
-    if ~isempty(strfind(a{i},'pdata')) 
-        k=i; 
-        for j=1:k-1 
-            result=[result a{j} filesep];
-            if j==k-1 path_method=[result 'method']; end
-        end
-    end 
-    if ~isempty(strfind(a{i},work_dir)) 
-        k=i;  
-        for j=1:k-1 
-            result=[result a{j} filesep];
-            if j==k-1 path_method=[result 'method']; end
-        end
-    end
-end
 
-method_bg_exists=0;
+    %Create orCode from method file
+    %*************************************************************************************************************************************
+    a=strread(Vbg.fname,'%s','delimiter',[filesep filesep]);
 
-if ~isempty(result)
-    [fid2 message]      =   fopen(deblank(path_method), 'r');    
-    while feof(fid2) == 0
-        read            =   fgetl(fid2);
-        tag=strread(read,'%s','delimiter','=');
-        switch tag{1}
-            case '##$PVM_SPackArrSliceOrient'
-                orient  =   fgetl(fid2);
-            case '##$PVM_SPackArrReadOrient'
-                rout    =   fgetl(fid2);
-            case '##$PVM_SPackArrSliceGap'
-                gap     =   eval(fgetl(fid2));               
+    k=0;result='';
+    for i=1:size(a,1) 
+        if ~isempty(strfind(a{i},'pdata')) 
+            k=i; 
+            for j=1:k-1 
+                result=[result a{j} filesep];
+                if j==k-1 path_method=[result 'method']; end
+            end
+        end 
+        if ~isempty(strfind(a{i},work_dir)) 
+            k=i;  
+            for j=1:k-1 
+                result=[result a{j} filesep];
+                if j==k-1 path_method=[result 'method']; end
+            end
         end
     end
-    method_bg_exists    =   1;
-    fclose(fid2);
-else   orient='axial'; rout='A_P';gap=0; orCode =3;   
-end
-a       =   repmat(orient,3,1);
-a       =   {a(1,:);a(2,:);a(3,:)};
-b       =   {'sagittal';'coronal';'axial'};
-orCode  =   find(strcmp(a,b));
 
+    method_bg_exists=0;
+
+    if ~isempty(result)
+        [fid2 message]      =   fopen(deblank(path_method), 'r');    
+        while feof(fid2) == 0
+            read            =   fgetl(fid2);
+            tag=strread(read,'%s','delimiter','=');
+            switch tag{1}
+                case '##$PVM_SPackArrSliceOrient'
+                    orient  =   fgetl(fid2);
+                case '##$PVM_SPackArrReadOrient'
+                    rout    =   fgetl(fid2);
+                case '##$PVM_SPackArrSliceGap'
+                    gap     =   eval(fgetl(fid2));               
+            end
+        end
+        method_bg_exists    =   1;
+        fclose(fid2);
+    else   orient='axial'; rout='A_P';gap=0; orCode =3;   
+    end
+    a       =   repmat(orient,3,1);
+    a       =   {a(1,:);a(2,:);a(3,:)};
+    b       =   {'sagittal';'coronal';'axial'};
+    orCode  =   find(strcmp(a,b));
+
+if exist('defs','var') && isfield('defs','disp_or') && defs.disp_or~=4
+    orCode    =   defs.disp_or;
+end
 
 VbgVox              =   sqrt(sum(Vbg.mat(1:3,1:3).^2));  % Voxel size (in mm) of bg volume
 VbgOrg              =   -Vbg.mat(1:3,4)';  % Origin (in mm) of bg volume
@@ -140,7 +145,7 @@ SPM.swd     =   proc;  %update path to ensure multiplatform
     SPMExtras(1).cmap   =	'hot';
     SPMExtras(2).cmap   =   'cool';
     
-
+if nargin~=0
     cname	=   {'rest < stim','stim < rest'};
     cons    =   {zeros(1,size(SPM.xX.X,2))',zeros(1,size(SPM.xX.X,2))'};
     if mode_des 
@@ -157,6 +162,16 @@ SPM.swd     =   proc;  %update path to ensure multiplatform
          nSPM       =   0;
          SPM.xCon   =   {};
      end
+else
+    [ii1 cs]      =   spm_conman(SPM);
+    [ii2 cs]      =   spm_conman(SPM);  
+%     xCon(1,1)       =   spm_FcUtil('Set',cons(ii1).name,'T','c',cons(ii1),SPM.xX.xKXs);
+%     xCon(2,1)       =   spm_FcUtil('Set',cons(ii2).name,'T','c',cons(ii2),SPM.xX.xKXs);
+    cons{1}         =   cs(ii1);
+    cons{2}         =   cs(ii2);
+    ids             =   [ii1 ii2];
+end
+     
     
     nSPM            =   size(cons,2);
     SPM.Im          =   [];
@@ -169,11 +184,16 @@ SPM.swd     =   proc;  %update path to ensure multiplatform
     save(path_SPM,'SPM','-append');
     
  try   
- for i=1:nSPM
+ for k=1:nSPM
 
+    if nargin~=0
+        i=k;
+    else
+        i=ids(k);
+    end
     load(path_SPM);
     xSPM            =   SPM;
-    xSPM.title      =   cname{i};
+    xSPM.title      =   SPM.xCon(i).name;
     xSPM.Ic         =   i;
 
     [SPM, SPMVol]	=   spm_getSPM(xSPM);
@@ -183,19 +203,19 @@ SPM.swd     =   proc;  %update path to ensure multiplatform
             case 'spm99'
                 Z               =   SPM.Z;
                 SPM.Znorm       =   spm_t2z(Z,SPMVol.df(2),10^(-16));  
-                SPMList(i)      =   SPM;
+                SPMList(k)      =   SPM;
             case 'spm2'
                 Z               =   SPMVol.Z;
                 SPMVol.Znorm    =   spm_t2z(Z,SPMVol.df(2),10^(-16));                
-                SPMList(i)      =   SPMVol;
+                SPMList(k)      =   SPMVol;
             otherwise
                 Z               =   SPMVol.Z;
                 SPMVol.Znorm    =   spm_t2z(Z,SPMVol.df(2),10^(-16));                                
-                SPMList(i)      =   SPMVol;
+                SPMList(k)      =   SPMVol;
     end
-        SPMExtras(i).M          =   SPMVol.M;
-        SPMExtras(i).XYZ        =   SPMVol.XYZ;
-        SPMExtras(i).cons       =   cons{i};
+        SPMExtras(k).M          =   SPMVol.M;
+        SPMExtras(k).XYZ        =   SPMVol.XYZ;
+        SPMExtras(k).cons       =   cons{k};
         
         clear SPM
  end           
@@ -272,35 +292,38 @@ switch nSPM
 end;    % switch(nSPM)
 
 
-%Create r_out from method file
-%*************************************************************************************************************************************
-cd(fileparts(fileparts(path_SPM)));
-path_method                 =   dir('method');
-method_f_exists             =   0;
-try fid2 = fopen(deblank(path_method.name), 'r');
-    while feof(fid2) == 0
-        read                =   fgetl(fid2);
-        tag                 =   strread(read,'%s','delimiter','=');
-        switch tag{1}
-            case '##$PVM_SPackArrSliceOrient'
-                orient_f    =   fgetl(fid2);
-            case '##$PVM_SPackArrReadOrient'
-                rout_f      =   fgetl(fid2);
-            case '##$PVM_SPackArrSliceGap'
-                gap_f       =   eval(fgetl(fid2));                
+    %Create r_out from method file
+    %*************************************************************************************************************************************
+    cd(fileparts(fileparts(path_SPM)));
+    path_method                 =   dir('method');
+    method_f_exists             =   0;
+    try fid2 = fopen(deblank(path_method.name), 'r');
+        while feof(fid2) == 0
+            read                =   fgetl(fid2);
+            tag                 =   strread(read,'%s','delimiter','=');
+            switch tag{1}
+                case '##$PVM_SPackArrSliceOrient'
+                    orient_f    =   fgetl(fid2);
+                case '##$PVM_SPackArrReadOrient'
+                    rout_f      =   fgetl(fid2);
+                case '##$PVM_SPackArrSliceGap'
+                    gap_f       =   eval(fgetl(fid2));                
+            end
         end
+        method_f_exists         =   1;
+        fclose(fid2);
+    catch
+        orient_f='axial';rout_f='L_R'; gap_f='0';
     end
-    method_f_exists         =   1;
-    fclose(fid2);
-catch
-    orient_f='axial';rout_f='L_R'; gap_f='0';
-end
-cd(fileparts(path_SPM));
-    a           =   repmat(orient_f,3,1);
-    a           =   {a(1,:);a(2,:);a(3,:)};
-    b           =   {'sagittal';'coronal';'axial'};
-    orCode_f    =   find(strcmp(a,b));
+    cd(fileparts(path_SPM));
+        a           =   repmat(orient_f,3,1);
+        a           =   {a(1,:);a(2,:);a(3,:)};
+        b           =   {'sagittal';'coronal';'axial'};
+        orCode_f    =   find(strcmp(a,b));
 
+if exist('defs','var') && isfield('defs','disp_or') && defs.disp_or~=4
+    orCode_f    =   defs.disp_or;
+end
 %----------------------------------------------------------------------------
 %  Set Vol struct according to optional SPM overlay
 %---------------------------------------------------------------------------
@@ -482,7 +505,7 @@ xLbl    =   ['x = ';    'y = ';    'z = '];
 %----------------------------------------------------------------------------
 
 w       =   (1  - fHoriz*(maxCol-1))/maxCol;
-h       =   (top - fVert*(maxRow+6))/maxRow;
+h       =   (top - fVert*(maxRow+6))*0.8/maxRow;
 
 mRow    =   0;
 mCol    =   0;
@@ -565,14 +588,39 @@ for n = 1:nImgs
             
     end
     
+%     sliceDims   =   [Vsize(i) Vsize(j)];
+%     matr        =   diag([0.01,0.01,0.01,1])\A;
+%     T1          =   T0;
+%     if A(3,3)<0
+%         T1(3,4)     =   -T1(3,4);
+%     end
+%     kk          =   inv(T1*matr);                %****************************************************************************************************   
+%     kk(3,4)=n;
     sliceDims   =   [Vsize(i) Vsize(j)];
-    matr        =   diag([0.01,0.01,0.01,1])\A;
-    T1          =   T0;
-    if A(3,3)<0
-        T1(3,4)     =   -T1(3,4);
+%     matr        =   diag([0.01,0.01,0.01,1])\A;
+
+
+%     if defs.RevZ
+%         T0(3,4)     =   -T0(3,4);
+%     end
+%     kk          =   inv(T0*matr);                %****************************************************************************************************   
+%     Dbg         =   spm_slice_vol(Vbg, kk, sliceDims, 1);
+%      Dbg         =   spm_slice_vol(Vbg, kk, sliceDims, 1);
+
+     slice_id            =   zeros(1,3);
+    slice_id(orCode)    =   n;
+%     if defs.RevZ
+%         slice_id(orCode)    =   -n;
+%     end
+    scale               =   [0.01, 0.01, 0.01]./VbgVox;
+    transf              =   [slice_id, [0 0 0], scale, 0,0,0];
+    kk                  =   spm_matrix(transf);
+    if kk(3,3)<0
+        kk(3,4)     =   -kk(3,4);
     end
-    kk          =   inv(T1*matr);                %****************************************************************************************************   
-    Dbg         =   spm_slice_vol(Vbg, kk, sliceDims, 1);
+    Dbg         =   spm_slice_vol(Vbg,kk , sliceDims, 1);
+
+
 
     
     %  ----------------------------------------------------------
@@ -641,17 +689,30 @@ for n = 1:nImgs
         Vspm        =   reshape(Vspm, dim);
         Zspm        =   reshape(Zspm, dim);
 % 
-        matr        =   SPMExtras(k).M;
-        matr        =   diag([0.01,0.01,0.01,1])\matr;
-        T2          =   T0;
-        if matr(3,3)<0
-            T2(3,4)     =   -T2(3,4); 
-        else
-            Pos_mm      =   -TalL(orCode);            
-        end
-        kk2         =   inv(T2*matr);
-        T           =   spm_slice_vol(Vspm, kk2, sliceDims, SPMinterp);  %*******************************************
-        Zs          =   spm_slice_vol(Zspm, kk2, sliceDims, SPMinterp);  %*******************************************       
+%         matr        =   SPMExtras(k).M;
+%         matr        =   diag([0.01,0.01,0.01,1])\matr;
+%         T2          =   T0;
+%         if matr(3,3)<0
+%             T2(3,4)     =   -T2(3,4); 
+%         else
+%             Pos_mm      =   -TalL(orCode);            
+%         end
+%         kk2         =   inv(T2*matr);
+%         T           =   spm_slice_vol(Vspm, kk2, sliceDims, SPMinterp);  %*******************************************
+%         Zs          =   spm_slice_vol(Zspm, kk2, sliceDims, SPMinterp);  %*******************************************       
+    slice_id            =   zeros(1,3);
+    slice_id(orCode)    =   n;
+%     if defs.RevZ
+%         slice_id(orCode)    =   -n;
+%     end
+    scale               =   [0.01, 0.01, 0.01]./SPMVol(1,1).VOX;
+    transf              =   [slice_id, zeros(1,3), scale, 0,0,0];
+    kk                  =   spm_matrix(transf);
+    if kk(3,3)<0
+        kk(3,4)     =   -kk(3,4);
+    end
+        T           =   spm_slice_vol(Vspm,kk, sliceDims, SPMinterp);
+        Zs          =   spm_slice_vol(Zspm, kk, sliceDims, SPMinterp);
 
         
         %--------------------------------------------------------
@@ -759,7 +820,7 @@ for n = 1:nImgs
 
         axes('Position',[mCol*(w+fHoriz) top-(mRow+1)*(h+fVert)-(1.5*fVert) w h])
 
-        Dbg1    =   rot90(Dbg1,1);
+        Dbg1    =   rot90(flipdim(Dbg1,1),-1);
         himg    =   image(Dbg1);
         axis image; 
         sc      =   spm('FontScale');    
@@ -783,7 +844,7 @@ for n = 1:nImgs
         figure(hZmap);    
         axes('Position',[mCol*(w+fHoriz) top-(mRow+1)*(h+fVert)-(1.5*fVert) w h])
 
-        Dbg1    =   rot90(Dbg1,1);
+        Dbg1    =   rot90(flipdim(Dbg1,1),-1);
         himg    =   image(Dbg1);
         axis image; 
         sc      =   spm('FontScale');    
@@ -939,7 +1000,7 @@ end
 
 %   TIFF MOSAIC *********************************************************************************************************************
 figure(Fgraph);
-if ~defs.inifti
+if exist('defs','var') && isfield('defs','inifti') && ~defs.inifti
     [path nam ext]  =   fileparts(fileparts(SPMVol(1).swd));
 else
     [path nam ext]  =   fileparts(fileparts(path_SPM));
@@ -948,12 +1009,12 @@ if nargin~=0
     print(Fgraph,'-dtiff','-r300',[path filesep 'results_' nam '_' num2str(fwe) '_p_' ...
         regexprep(num2str(p),'\.','_') '_k_' num2str(kl) '.tif']);
 else
-    print(Fgraph,'-dtiff','-r300',[path filesep 'results_' nam '_manual_' num2str(fwe) '_p_' ...
+    print(Fgraph,'-dtiff','-r300',[path filesep 'results_' SPMVol(1).title '_' nam '_manual_' num2str(fwe) '_p_' ...
         regexprep(num2str(p),'\.','_') '_k_' num2str(kl) '.tif']);
 end
 %--------------------------------------------------------------------------
 figure(hZmap);
-if ~defs.inifti
+if exist('defs','var') && isfield('defs','inifti') && ~defs.inifti
     [path nam ext]  =   fileparts(fileparts(SPMVol(1).swd));
 else
     [path nam ext]  =   fileparts(fileparts(path_SPM));
@@ -962,7 +1023,7 @@ if nargin~=0
     print(hZmap,'-dtiff','-r500',[path filesep 'Zresults_' nam '_' num2str(fwe) '_p_' ...
         regexprep(num2str(p),'\.','_') '_k_' num2str(kl) '.tif'])
 else
-    print(hZmap,'-dtiff','-r300',[path filesep 'Zresults_' nam '_manual_' num2str(fwe) '_p_' ...
+    print(hZmap,'-dtiff','-r300',[path filesep 'Zresults_' SPMVol(1).title '_' nam '_manual_' num2str(fwe) '_p_' ...
         regexprep(num2str(p),'\.','_') '_k_' num2str(kl) '.tif'])
 end
 

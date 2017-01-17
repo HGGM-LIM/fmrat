@@ -23,7 +23,7 @@ function varargout = fmri_gui(varargin)
 
 % Edit the above text to modify the response to help fmri_gui
 
-% Last Modified by GUIDE v2.5 19-May-2016 20:50:25
+% Last Modified by GUIDE v2.5 25-Aug-2016 16:27:33
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -137,6 +137,9 @@ set(handles.togglebutton5,'Value',0);
 set(handles.edit33,'String','0');
 set(handles.edit36,'String','128');
 set(handles.uipanel22,'UserData',[]);
+
+set(handles.popupmenu7,'Value',1);
+
 % UIWAIT makes fmri_gui wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
  
@@ -324,7 +327,12 @@ func_seq =      get(handles.edit30,'String');
 fwe=            get(handles.radiobutton19,'Value');
 p=              str2num(get(handles.edit24,'String'));
 k=              str2num(get(handles.edit25,'String'));
-
+disp_or     =   get(handles.popupmenu7,'Value');
+if disp_or==1
+    disp_or     =   4;
+else
+    disp_or     =   disp_or-1;
+end
 
 if ~strcmp(action,'all') && ~preserve
    warndlg(['You are not following the typical workflow, and "Preserve previous processing steps" is NOT checked. ' ...
@@ -344,7 +352,7 @@ if eval(ok)
     set(handles.uipanel8,'BackgroundColor',[0.906,0.906,0.906]);
     fmri(action,sel_dir,sp,atlas_dir,sm,coreg,2,anat_seq,func_seq,NR,Nrest,...
         Nstim,0,fwe,p,k,custom_atlas,custom_resol,rx,ry,rz,sx,preserve,preprocess,...
-        realign, design,estimate, display, adv_paradigm,adv_cov, skip,cutoff,user_hrf,t_max,0,[],[],rois_dir);
+        realign, design,estimate, display, adv_paradigm,adv_cov, skip,cutoff,user_hrf,t_max,disp_or,0,[],[],rois_dir);
 else
     if ~(isdir(sel_dir)) 
         set(handles.edit1,'String','Not valid');
@@ -699,6 +707,12 @@ func_seq =      get(handles.edit30,'String');
 fwe=            get(handles.radiobutton19,'Value');
 p =             str2num(get(handles.edit24,'String'));
 k =             str2num(get(handles.edit25,'String'));
+disp_or     =   get(handles.popupmenu7,'Value');
+if disp_or==1
+    disp_or     =   4;
+else
+    disp_or     =   disp_or-1;
+end
 rois_dir    =   get(handles.edit26,'String');
 
 
@@ -723,7 +737,7 @@ if eval(ok)
                 'anat_seq','func_seq','coreg','custom_atlas','sp',      ...
                 'atlas_dir','custom_resol','rx','ry','rz','sm','fwe',   ...
                 'p','k','sx','prep','rea','des','tim','dis','preserve', ...
-                'rois_dir','adv_paradigm','adv_cov','skip','cutoff','user_hrf','t_max');
+                'rois_dir','adv_paradigm','adv_cov','skip','cutoff','user_hrf','t_max','disp_or');
             fclose all;
         catch
             errordlg('Cannot save config file here. Check folder permissions');
@@ -879,7 +893,7 @@ set(handles.togglebutton5,'Value',0);
 set(handles.uipanel22,'UserData',[]);
 set(handles.edit33,'String','0');
 set(handles.edit36,'String','128');
-
+set(handles.popupmenu7,'Value',1);
 
 % Get config file
 sel_dir =       get(handles.edit1,'String');
@@ -988,6 +1002,7 @@ try
     set(handles.radiobutton18,'Value',~fwe);    
     set(handles.edit24,'String',num2str(p));    
     set(handles.edit25,'String',num2str(k)); 
+    set(handles.popupmenu7,'Value',disp_or+1);
     set(handles.checkbox8,'Value',cast(cast(prep,'uint8'),'logical'));
     set(handles.checkbox9,'Value',cast(cast(rea,'uint8'),'logical'));
     set(handles.checkbox10,'Value',cast(cast(des,'uint8'),'logical'));
@@ -2394,3 +2409,26 @@ end
 set(handles.uipanel22,'UserData',prev); 
 
 
+
+
+% --- Executes on selection change in popupmenu7.
+function popupmenu7_Callback(hObject, eventdata, handles)
+% hObject    handle to popupmenu7 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns popupmenu7 contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from popupmenu7
+
+
+% --- Executes during object creation, after setting all properties.
+function popupmenu7_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to popupmenu7 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end

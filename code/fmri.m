@@ -190,6 +190,8 @@ defs=struct( ...
     'fwe',          1,          ... %### input threshold is FWE corrected?
     'p',            0.001,      ... %### statistical p threshold
     'k',            4,          ... %### cluster size (in voxels)
+    'disp_or',      4,          ... % 1=Sagittal, 2=Coronal, 3=Axial (Bruker convention), 4=Will read from Bruker files
+                                ... % If nothing is found it will be axial by default
     'studies',      '',         ... %   String containing studies names in rows
     'data_struct',  struct(),   ... %   Structure containing 'p_func' string array,'p_ref' and 'mask' cell arrays
     'inifti',       0 ,         ... %### if nifti=0, raw Bruker images are expected / nifti=1, fill studies and data
@@ -386,24 +388,27 @@ else
     end     
     if nargin>=34 && ~isempty(varargin{34}) 
         defs.t_max          =   varargin{34};     
-    end       
-    if nargin>=35 && ~isempty(varargin{35}) 
-        defs.inifti         =   varargin{35};     
     end  
+    if nargin>=35 && ~isempty(varargin{35}) 
+        defs.disp_or        =   varargin{35};     
+    end      
     if nargin>=36 && ~isempty(varargin{36}) 
-        defs.studies        =   varargin{36};     
+        defs.inifti         =   varargin{36};     
     end  
     if nargin>=37 && ~isempty(varargin{37}) 
-        defs.data_struct    =   varargin{37};     
-    end
+        defs.studies        =   varargin{37};     
+    end  
     if nargin>=38 && ~isempty(varargin{38}) 
-        defs.rois_dir    =   varargin{38};     
+        defs.data_struct    =   varargin{38};     
+    end
+    if nargin>=39 && ~isempty(varargin{39}) 
+        defs.rois_dir    =   varargin{39};     
     end    
     if (defs.inifti==1) && (isempty(defs.studies) || isempty(defs.data_struct))
        errordlg('Nifti format selected. Studies and data_struct must be filled.');
     end
-    if nargin>=39 && ~isempty(varargin{39}) 
-        defs.TR    =   varargin{39};     
+    if nargin>=40 && ~isempty(varargin{40}) 
+        defs.TR    =   varargin{40};     
     end 
 
     
@@ -451,6 +456,7 @@ else
             defs.p              =   defs_new.p;  
             defs.k              =   defs_new.k;   
         end
+        defs.disp_or        =   defs_new.disp_or;
         if defs_new.smooth
             defs.kernel         =   defs_new.kernel;  
         end

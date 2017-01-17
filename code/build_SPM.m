@@ -32,7 +32,7 @@ switch spm('Ver')
     otherwise
     global defaults;
     defaults.modality   =   'FMRI';
-    job                 =   build_job(paths,onsets, duration,rp,dest,mask,covariable,TR,defs);
+        job             =   build_job(paths,onsets, duration,rp,dest,mask,covariable,TR,defs);
         if exist(fullfile(job.dir{1},'SPM.mat'),'file')
             delete(fullfile(job.dir{1},'SPM.mat'));
         end    
