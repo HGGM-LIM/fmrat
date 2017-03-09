@@ -820,7 +820,7 @@ for n = 1:nImgs
 
         axes('Position',[mCol*(w+fHoriz) top-(mRow+1)*(h+fVert)-(1.5*fVert) w h])
 
-        Dbg1    =   rot90(flipdim(Dbg1,1),-1);
+        Dbg1    =   rot90(Dbg1,-1);
         himg    =   image(Dbg1);
         axis image; 
         sc      =   spm('FontScale');    
@@ -844,7 +844,7 @@ for n = 1:nImgs
         figure(hZmap);    
         axes('Position',[mCol*(w+fHoriz) top-(mRow+1)*(h+fVert)-(1.5*fVert) w h])
 
-        Dbg1    =   rot90(flipdim(Dbg1,1),-1);
+        Dbg1    =   rot90(Dbg1,-1);
         himg    =   image(Dbg1);
         axis image; 
         sc      =   spm('FontScale');    
@@ -1000,10 +1000,10 @@ end
 
 %   TIFF MOSAIC *********************************************************************************************************************
 figure(Fgraph);
-if exist('defs','var') && isfield('defs','inifti') && ~defs.inifti
+if exist('defs','var') && isfield(defs,'inifti') && ~defs.inifti
     [path nam ext]  =   fileparts(fileparts(SPMVol(1).swd));
 else
-    [path nam ext]  =   fileparts(fileparts(path_SPM));
+    [path nam ext]  =   fileparts(path_SPM);
 end
 if nargin~=0
     print(Fgraph,'-dtiff','-r300',[path filesep 'results_' nam '_' num2str(fwe) '_p_' ...
@@ -1014,10 +1014,10 @@ else
 end
 %--------------------------------------------------------------------------
 figure(hZmap);
-if exist('defs','var') && isfield('defs','inifti') && ~defs.inifti
+if exist('defs','var') && isfield(defs,'inifti') && ~defs.inifti
     [path nam ext]  =   fileparts(fileparts(SPMVol(1).swd));
 else
-    [path nam ext]  =   fileparts(fileparts(path_SPM));
+    [path nam ext]  =   fileparts(path_SPM);
 end
 if nargin~=0
     print(hZmap,'-dtiff','-r500',[path filesep 'Zresults_' nam '_' num2str(fwe) '_p_' ...
