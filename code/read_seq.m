@@ -9,6 +9,6 @@ function [Img]=read_seq(path,pars)
        
         dims    =   pars.dims(1:3);
         dims    =   [dims(pars.vect); pars.dims(4)];
-        %Img     =   reshape(Img,dims');   
+        Img     =   reshape(Img,dims');   
         
 end

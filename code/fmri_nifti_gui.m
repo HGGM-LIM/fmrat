@@ -1898,11 +1898,7 @@ if isstruct(pdgm)
             end
             y       =   zeros(1,pdgm.NR*1000); 
             for i=1:size(pdgm.onsets,2)
-                if (pdgm.onsets(i)+duration(i))*1000 <= (pdgm.NR*1000)
-                    y(pdgm.onsets(i)*1000:((pdgm.onsets(i)+duration(i))*1000))=1;
-                else
-                    y(pdgm.onsets(i)*1000:pdgm.NR*1000)=1;
-                end
+                y(pdgm.onsets(i)*1000:((pdgm.onsets(i)+duration(i))*1000))=1;
             end
             base    =   [1:pdgm.NR*1000];
             plot(handles.axes3,base,y,' .b');
