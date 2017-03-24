@@ -34,8 +34,8 @@ else
     [path_SPM sts]  =   spm_select(1,'mat','Select your SPM');
     proc            =   fileparts(path_SPM);
     fwe             =   0;
-    p               =   0.001;
-    kl              =   12;
+    p               =   0.01;
+    kl              =   6;
     defs.inifti     =   1;
 end
 
@@ -820,7 +820,7 @@ for n = 1:nImgs
 
         axes('Position',[mCol*(w+fHoriz) top-(mRow+1)*(h+fVert)-(1.5*fVert) w h])
 
-        Dbg1    =   rot90(Dbg1,-1);
+        Dbg1    =   flipdim(rot90(Dbg1,-1),2);
         himg    =   image(Dbg1);
         axis image; 
         sc      =   spm('FontScale');    
@@ -844,7 +844,7 @@ for n = 1:nImgs
         figure(hZmap);    
         axes('Position',[mCol*(w+fHoriz) top-(mRow+1)*(h+fVert)-(1.5*fVert) w h])
 
-        Dbg1    =   rot90(Dbg1,-1);
+        Dbg1    =   flipdim(rot90(Dbg1,-1),2);
         himg    =   image(Dbg1);
         axis image; 
         sc      =   spm('FontScale');    
