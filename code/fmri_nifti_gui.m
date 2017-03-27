@@ -23,7 +23,7 @@ function varargout = fmri_nifti_gui(varargin)
 
 % Edit the above text to modify the response to help fmri_nifti_gui
 
-% Last Modified by GUIDE v2.5 25-Aug-2016 16:50:42
+% Last Modified by GUIDE v2.5 27-Mar-2017 16:55:35
 
 % Begin initialization code - DO NOT EDIT
 global test
@@ -120,6 +120,7 @@ set(handles.togglebutton10,'Value',0);
 
 set(handles.edit30,'String','0');
 set(handles.edit31,'String','128');
+set(handles.edit32,'String','0.3');
 set(handles.uipanel20,'UserData',[]);
 set(handles.popupmenu5,'Value',1);
 % UIWAIT makes fmri_nifti_gui wait for user response (see UIRESUME)
@@ -225,6 +226,7 @@ if ~isempty(adv_dat) && isfield(adv_dat,'user_hrf')
     user_hrf        =   adv_dat.user_hrf;
     t_max           =   adv_dat.t_max;    
 end
+thr         =   str2num(get(handles.edit32,'String'));   
 fwe=            get(handles.radiobutton8,'Value');
 p=              str2num(get(handles.edit23,'String'));
 k=              str2num(get(handles.edit24,'String'));
@@ -251,16 +253,17 @@ ok= ['isdir(sel_dir) && all(struct_ok) && ((block_ok==1) || ~isempty(adv_paradig
     '((coreg && (sp~=0))|| (coreg && (~isempty(atlas_dir))) || (~coreg))' ...
     '&& ((custom_resol==0)||((~isempty(rx))&&(~isempty(ry))&&(~isempty(rz))))'...
     '&& ((sm==0)|| (~isnan(sx))) && ((p>0)&& (p<=1) && (~isnan(p)))&& ((k>0)&&(~isnan(k)))' ...
-    '&& exist(''data_struct'',''var'') && ~isempty(TR)'...
-    '&& ((skip>=0)&& (~isnan(skip))) && ((cutoff>=0) && (~isnan(skip)))'];
+    '&& exist(''data_struct'',''var'') && ~isempty(TR) '...
+    '&& ((skip>=0)&& (~isnan(skip))) && ((cutoff>=0) && (~isnan(skip))) ' ...
+    '&& (~isnan(cutoff))) && (~isempty(thr) && thr>0 && thr<1)'];
 if eval(ok)        
     set(handles.uipanel12,'BackgroundColor',[0.867, 0.918, 0.976]);
     set(handles.uipanel19,'BackgroundColor',[0.906,0.906,0.906]); 
     cputime,
     eval(['fmri(action,sel_dir,sp,atlas_dir,sm,coreg,mode_reg,anat_seq,func_seq,'...
-        'NR,Nrest,Nstim,0,fwe,p,k,custom_atlas,custom_resol,rx,ry,rz,sx,preserve,preprocess,' ...
+        'NR,Nrest,Nstim,'''',fwe,p,k,custom_atlas,custom_resol,rx,ry,rz,sx,preserve,preprocess,' ...
         'realign, design,estimate, display,adv_paradigm, adv_cov, skip,cutoff,user_hrf,t_max,' ...
-        'disp_or,1,studies,data_struct,rois_dir, TR)']);
+        'disp_or,thr,{''''},1,studies,data_struct,rois_dir, TR)']);
 
 elseif ~(isdir(sel_dir)) 
         set(handles.edit14,'String','Not valid');
@@ -304,7 +307,10 @@ elseif (coreg && (custom_resol==1) && ((rx==0)||(ry==0)||(rz==0)))
         errordlg('Skipped volumes are not a valid number');    
     elseif (cutoff<0 || isnan(cutoff))
         set(handles.edit31,'BackgroundColor',[0.847,0.161,0]);
-        errordlg('Cutoff is not a valid number');        
+        errordlg('Cutoff is not a valid number');
+    elseif (isempty(thr) || thr<=0 || thr>=1)
+         set(handles.edit32,'BackgroundColor',[0.847,0.161,0]);
+        errordlg('Threshold is not a valid number. Insert a value between 0 and 1.');            
     elseif (p<=0)|| (p>=1) ||(isnan(p))
         set(handles.edit23,'BackgroundColor',[0.847,0.161,0]);
         set(hObject,'Value',0);  
@@ -384,6 +390,7 @@ if ~isempty(adv_dat) && isfield(adv_dat,'user_hrf')
     user_hrf        =   adv_dat.user_hrf;
     t_max           =   adv_dat.t_max;
 end
+thr      =      str2num(get(handles.edit32,'String'));
 fwe=            get(handles.radiobutton8,'Value');
 p =             str2num(get(handles.edit23,'String'));
 k =             str2num(get(handles.edit24,'String'));
@@ -401,7 +408,7 @@ ok= ['~isempty(data) && all(struct_ok) && isdir(sel_dir) && (block_ok==1) && ' .
     '&& ((custom_resol==0)||((~isempty(rx))&&(~isempty(ry))&&(~isempty(rz))))' ...
     '&& ((sm==0)||(~isnan(sx))) && ((p>0)|| (p>=1) ||(~isnan(p)))&& ((k>1)||(~isnan(k)))'...
     '&& ((skip>=0)&& (~isnan(skip))) && ((cutoff>=0) && (~isnan(cutoff)))'...    
-    '&& ~isempty(TR)'];
+    '&& ~isempty(TR) && (~isempty(thr) && thr>0 && thr<1)'];
 
 if eval(ok)        
     set(handles.uipanel12,'BackgroundColor',[0.867,0.918,0.976]);
@@ -416,7 +423,7 @@ if eval(ok)
             save(fullpath,'sel_dir','data','struct_ok','block_ok','NR','Nrest','Nstim',...
                 'coreg','custom_atlas','sp','atlas_dir','custom_resol','rx','ry','rz',...
                 'rea','des','tim','dis','sm','fwe','p','k','sx','preserve','rois_dir',...
-                'TR','adv_paradigm','adv_cov','skip','cutoff','user_hrf','t_max','disp_or');
+                'TR','adv_paradigm','adv_cov','skip','cutoff','thr','user_hrf','t_max','disp_or');
             fclose all;            
         catch
             errordlg('Cannot save config file here. Check folder permissions');
@@ -465,7 +472,10 @@ elseif (coreg && (custom_resol==1) && ((rx==0)||(ry==0)||(rz==0)))
         errordlg('Skipped volumes are not a valid number');    
     elseif (cutoff<0 || isnan(cutoff))
         set(handles.edit31,'BackgroundColor',[0.847,0.161,0]);
-        errordlg('Cutoff is not a valid number');        
+        errordlg('Cutoff is not a valid number');     
+    elseif (thr<0 || thr>1 || isnan(thr))
+        set(handles.edit32,'BackgroundColor',[0.847,0.161,0]);
+        errordlg('Threshold is not a valid number. Insert a value between 0 and 1.');          
     elseif (p<=0)|| (p>=1) ||(isnan(p))
         set(handles.edit23,'BackgroundColor',[0.847,0.161,0]);
         set(hObject,'Value',0);  
@@ -536,6 +546,8 @@ set(handles.radiobutton7,'Value',0);
 set(handles.radiobutton8,'Value',1);
 set(handles.edit23,'String','0.05');
 set(handles.edit24,'String','4');
+set(handles.edit31,'String','128');
+set(handles.edit32,'String','0.3');
 set(handles.text26,'BackgroundColor',[0.9,0.7,0.7]);
 install     =   mfilename('fullpath');
 set( handles.edit27,'String','');%[fileparts(install) filesep 'Atlas_SD']);
@@ -577,7 +589,8 @@ try
     set(handles.edit16,'String',num2str(Nstim)); 
     set(handles.edit17,'String',num2str(NR));
     set(handles.edit30,'String',num2str(skip));    
-    set(handles.edit31,'String',num2str(cutoff));        
+    set(handles.edit31,'String',num2str(cutoff)); 
+    set(handles.edit32,'String',num2str(thr));        
     adv_dat      =  [];
     if exist('adv_paradigm','var') && ~isempty(adv_paradigm) 
         adv_dat.paradigm    =   adv_paradigm;
@@ -724,7 +737,11 @@ try
             end
             y       =   zeros(1,adv_paradigm.NR*1000); 
             for i=1:size(adv_paradigm.onsets,2)
-                y(adv_paradigm.onsets(i)*1000:((adv_paradigm.onsets(i)+duration(i))*1000))=1;
+                if (adv_paradigm.onsets(i)+duration(i))*1000 <= (adv_paradigm.NR*1000)
+                    y(adv_paradigm.onsets(i)*1000:((adv_paradigm.onsets(i)+duration(i))*1000))=1;
+                else
+                    y(adv_paradigm.onsets(i)*1000:adv_paradigm.NR*1000)=1;
+                end
             end
             base    =   [1:adv_paradigm.NR*1000];
             plot(handles.axes3,base,y,' .b');
@@ -2102,6 +2119,48 @@ function popupmenu5_CreateFcn(hObject, eventdata, handles)
 % handles    empty - handles not created until after all CreateFcns called
 
 % Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit32_Callback(hObject, eventdata, handles)
+% hObject    handle to edit32 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+thr        =   get(handles.edit32,'String'); 
+
+
+if ~isempty(thr) 
+        thr   =  str2num(thr);
+    if ~isscalar(thr)
+            set(handles.edit32,'BackgroundColor',[0.847,0.161,0]);
+            set(hObject,'Value',0);  
+            errordlg('Threshold is not a valid number');         
+    elseif (thr<0) 
+            set(handles.edit32,'BackgroundColor',[0.847,0.161,0]);
+            set(hObject,'Value',0);  
+            errordlg('Threshold must be between 0 and 1.');
+    else
+            set(handles.edit32,'BackgroundColor',[1,1,1]);
+    end
+else
+    set(handles.edit32,'BackgroundColor',[0.847,0.161,0]);
+    errordlg(['Threshold must be between 0 and 1. It''s the GLM implicit intensity threshold. Only voxels with' ...
+        ' intensity onver threshold will be included in the GLM fitting. Check mask.nii output.']);
+% Hints: get(hObject,'String') returns contents of edit32 as text
+%        str2double(get(hObject,'String')) returns contents of edit32 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit32_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit32 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
 %       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');

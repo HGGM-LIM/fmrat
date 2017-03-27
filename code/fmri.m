@@ -181,7 +181,7 @@ defs=struct( ...
     'ry',           [],         ... % if custom_resol=true fill Y resol. here
     'rz',           [],         ... % if custom_resol=true fill Z resol. here
     'atlas',        '',         ... % This will be filled at runtime
-    'emask',        1,          ... %### Explicit masking?
+    'emask',        0,          ... %### Explicit masking?
     'mask',         {{''}},     ... % Mask path. If empty, no masking applied
     'rois',         {{''}},     ...
     'rois_dir',     '',         ... % This will be filled at runtime    
@@ -192,6 +192,7 @@ defs=struct( ...
     'k',            4,          ... %### cluster size (in voxels)
     'disp_or',      4,          ... % 1=Sagittal, 2=Coronal, 3=Axial (Bruker convention), 4=Will read from Bruker files
                                 ... % If nothing is found it will be axial by default
+    'thr',          0.3,        ... % Implicit masking for GLM (intensity mask, between 0 and 1)                                
     'studies',      '',         ... %   String containing studies names in rows
     'data_struct',  struct(),   ... %   Structure containing 'p_func' string array,'p_ref' and 'mask' cell arrays
     'inifti',       0 ,         ... %### if nifti=0, raw Bruker images are expected / nifti=1, fill studies and data
@@ -313,7 +314,10 @@ else
         end
     end
     if nargin>=13 && ~isempty(varargin{13}) 
-        defs.emask          =   varargin{13};     
+        defs.mask          =   varargin{13};
+        if ~isempty(defs.mask)
+            defs.emask      =  1;
+        end
     end
     if nargin>=14 && ~isempty(varargin{14}) 
         defs.fwe            =   varargin{14};     
@@ -391,24 +395,27 @@ else
     end  
     if nargin>=35 && ~isempty(varargin{35}) 
         defs.disp_or        =   varargin{35};     
-    end      
-    if nargin>=36 && ~isempty(varargin{36}) 
-        defs.inifti         =   varargin{36};     
     end  
+    if nargin>=36 && ~isempty(varargin{36}) 
+        defs.thr            =   varargin{36};     
+    end      
     if nargin>=37 && ~isempty(varargin{37}) 
-        defs.studies        =   varargin{37};     
+        defs.inifti         =   varargin{37};     
     end  
     if nargin>=38 && ~isempty(varargin{38}) 
-        defs.data_struct    =   varargin{38};     
-    end
+        defs.studies        =   varargin{38};     
+    end  
     if nargin>=39 && ~isempty(varargin{39}) 
-        defs.rois_dir    =   varargin{39};     
+        defs.data_struct    =   varargin{39};     
+    end
+    if nargin>=40 && ~isempty(varargin{40}) 
+        defs.rois_dir    =   varargin{40};     
     end    
     if (defs.inifti==1) && (isempty(defs.studies) || isempty(defs.data_struct))
        errordlg('Nifti format selected. Studies and data_struct must be filled.');
     end
-    if nargin>=40 && ~isempty(varargin{40}) 
-        defs.TR    =   varargin{40};     
+    if nargin>=41 && ~isempty(varargin{41}) 
+        defs.TR    =   varargin{41};     
     end 
 
     
@@ -457,6 +464,8 @@ else
             defs.k              =   defs_new.k;   
         end
         defs.disp_or        =   defs_new.disp_or;
+        defs.thr            =   defs_new.thr;        
+        defs.mask           =   defs_new.mask;           
         if defs_new.smooth
             defs.kernel         =   defs_new.kernel;  
         end
@@ -599,12 +608,6 @@ switch lower(action)
         else   % if no preset was found at least use Spmmouse defaults in stead of human's
             [rs,sts]    =   spm_select('FPList',defs.rois_dir,'^(?i)ROI.*\.nii$');
             defs.rois   =   cellstr(rs);       
-            fid         =   fopen([defs.rois_dir filesep 'mask.nii'],'r');
-            if isempty(defs.rois_dir) || fid<1
-                defs.mask   =   {''};
-            else
-                defs.mask = {[defs.rois_dir filesep 'mask.nii']};                   
-            end
             try 
                 spmmouse('load',[install filesep 'preset.mat']);
             catch
@@ -705,9 +708,9 @@ studies         =   fieldnames(data_struct);
                   defaults.realign.estimate.quality     =   1;
                   defaults.realign.estimate.fwhm        =   vox(1);
                   defaults.realign.estimate.rtm         =   1;
-                  spm_realign(files,defaults.realign.estimate);
+                  P     =   spm_realign(files,defaults.realign.estimate);
                   defaults.realign.write.which          =   2;
-                  spm_reslice(strvcat(files),defaults.realign.write);
+                  spm_reslice(P,defaults.realign.write);
                    
                   if defs.skip>0
                       cd(proc);
@@ -911,12 +914,8 @@ for st=1:size(studies,1)
                 end
                 fprintf('____%s______\n',proc);
                 [paths,onsets, duration, rp] = get_design(source_path,this,i, defs);
-                if defs.emask 
-                    this.mask{i}=[source_path filesep defs.mask]; 
-                end    
-                if ~defs.inifti
-                    mask        =   defs.mask{1};
-                else
+                mask        =   defs.mask{1}; 
+                if defs.inifti
                     mask        =   this.mask{i};
                 end
                 cov=[];
