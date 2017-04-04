@@ -41,25 +41,30 @@ function pars = get_pars(path)
         tag     =   strread(line,'%s','delimiter','=');
         switch tag{1}
             case '##$PVM_SPackArrNSlices'
-                pars.dims(3)     =   eval(fgetl(fid2));
+                pars.dims(3)    =   eval(fgetl(fid2));
             case '##$PVM_NRepetitions' 
-                pars.dims(4)     =   eval(tag{2}); 
+                pars.dims(4)    =   eval(tag{2}); 
             case '##$PVM_ScanTime'
-                scan_time   =   eval(tag{2}); 
+                scan_time       =   eval(tag{2}); 
             case '##$PVM_SPackArrSliceOrient'
-                pars.orient  =   fgetl(fid2);
+                pars.orient     =   fgetl(fid2);
             case '##$PVM_SPackArrReadOrient'
-                pars.r_out   =   fgetl(fid2);
+                pars.r_out      =   fgetl(fid2);
+            case '##$PVM_NEchoImages'
+                pars.echoes     =    eval(tag{2});
+                if pars.echoes>1
+                    pars.dims(5)    =   pars.echoes;
+                end
             case '##$PVM_SPackArrGradOrient'
-                m       =   0;
+                m               =   0;
                 while true
                     read    =   fgetl(fid2);
                     header  =   strread(read,'%c','delimiter','#');
                     if header(1)=='#' break; end
                     m       =   [m;strread(deblank(read))'];
                 end
-                pars.m_or   =   m(2:10);
-                pars.m_or   =   reshape(pars.m_or,[3,3]);
+                pars.m_or       =   m(2:10);
+                pars.m_or       =   reshape(pars.m_or,[3,3]);
 
         end
     end

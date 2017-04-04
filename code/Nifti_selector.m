@@ -70,7 +70,11 @@ end
 
 %Set initial unit
 [str remain]    =   strtok(initial_dir,':');
-str             =   [str(1) ':'];
+if ~isunix
+    str         =   [str(1) ':'];
+else 
+    str         =   str(1);
+end
 unit_list       =   get(handles.popupmenu1,'String'); 
 val             =   find(strncmpi(str,cellstr(unit_list),2));
 set(handles.popupmenu1,'Value',val);
@@ -366,9 +370,10 @@ if size(f_list,1)==size(a_list,1)
         last_k      =   0;
         last_acq    =   '';
         for k=1:size(f_list,1)
-            fname   =   regexprep(f_list(k,:),'[\. ]','_');
-            [path study ext]    =   (fileparts(fileparts(fileparts(fname))));
-            [route acq ext]     =   (fileparts(f_list(k,:))); 
+            fname   =   regexprep(fileparts(f_list(k,:)),'[\. ]','_');
+            idx     =   strfind(fname,filesep);
+            str     =   fname(idx(1)+1:end);
+            study   =   regexprep(str,'[\\\/]','_');
             if strcmp(last_study,study) 
                 eval(['files.study' study '.p_func=vertcat(files.study' study '.p_func, cellstr(f_list(k,:)))']);
                 eval(['files.study' study '.p_ref=vertcat(files.study' study '.p_ref, a_list(k,:))']);                
