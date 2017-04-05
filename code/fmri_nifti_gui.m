@@ -23,7 +23,7 @@ function varargout = fmri_nifti_gui(varargin)
 
 % Edit the above text to modify the response to help fmri_nifti_gui
 
-% Last Modified by GUIDE v2.5 27-Mar-2017 16:55:35
+% Last Modified by GUIDE v2.5 04-Apr-2017 14:38:33
 
 % Begin initialization code - DO NOT EDIT
 global test
@@ -233,9 +233,9 @@ k=              str2num(get(handles.edit24,'String'));
 disp_or     =   get(handles.popupmenu5,'Value');
 if disp_or==1
     disp_or     =   4;
-else
-    disp_or     =   disp_or-1;
 end
+disp_or     =   disp_or-1;
+
 
 
 anat_seq=       '';
@@ -255,7 +255,7 @@ ok= ['isdir(sel_dir) && all(struct_ok) && ((block_ok==1) || ~isempty(adv_paradig
     '&& ((sm==0)|| (~isnan(sx))) && ((p>0)&& (p<=1) && (~isnan(p)))&& ((k>0)&&(~isnan(k)))' ...
     '&& exist(''data_struct'',''var'') && ~isempty(TR) '...
     '&& ((skip>=0)&& (~isnan(skip))) && ((cutoff>=0) && (~isnan(skip))) ' ...
-    '&& (~isnan(cutoff))) && (~isempty(thr) && thr>0 && thr<1)'];
+    '&& (~isnan(cutoff)) && (~isempty(thr) && thr>0 && thr<1)'];
 if eval(ok)        
     set(handles.uipanel12,'BackgroundColor',[0.867, 0.918, 0.976]);
     set(handles.uipanel19,'BackgroundColor',[0.906,0.906,0.906]); 
@@ -263,7 +263,7 @@ if eval(ok)
     eval(['fmri(action,sel_dir,sp,atlas_dir,sm,coreg,mode_reg,anat_seq,func_seq,'...
         'NR,Nrest,Nstim,'''',fwe,p,k,custom_atlas,custom_resol,rx,ry,rz,sx,preserve,preprocess,' ...
         'realign, design,estimate, display,adv_paradigm, adv_cov, skip,cutoff,user_hrf,t_max,' ...
-        'disp_or,thr,{''''},1,studies,data_struct,rois_dir, TR)']);
+        'disp_or,thr,1,studies,data_struct,rois_dir, TR)']);
 
 elseif ~(isdir(sel_dir)) 
         set(handles.edit14,'String','Not valid');
@@ -395,11 +395,11 @@ fwe=            get(handles.radiobutton8,'Value');
 p =             str2num(get(handles.edit23,'String'));
 k =             str2num(get(handles.edit24,'String'));
 disp_or     =   get(handles.popupmenu5,'Value');
-if disp_or==1
-    disp_or     =   4;
-else
-    disp_or     =   disp_or-1;
-end
+% if disp_or==1
+%     disp_or     =   4;
+% else
+%     disp_or     =   disp_or-1;
+% end
 TR          =   str2num(get(handles.edit28,'String'));
 
 
@@ -696,7 +696,7 @@ try
     set(handles.radiobutton7,'Value',~fwe);    
     set(handles.edit23,'String',num2str(p));    
     set(handles.edit24,'String',num2str(k));
-    set(handles.popupmenu5,'Value',disp_or+1);    
+    set(handles.popupmenu5,'Value',disp_or);    
     set(handles.checkbox10,'Value',cast(cast(rea,'uint8'),'logical'));
     set(handles.checkbox6,'Value',cast(cast(des,'uint8'),'logical'));
     set(handles.checkbox7,'Value',cast(cast(tim,'uint8'),'logical'));
@@ -2150,6 +2150,7 @@ else
     set(handles.edit32,'BackgroundColor',[0.847,0.161,0]);
     errordlg(['Threshold must be between 0 and 1. It''s the GLM implicit intensity threshold. Only voxels with' ...
         ' intensity onver threshold will be included in the GLM fitting. Check mask.nii output.']);
+end
 % Hints: get(hObject,'String') returns contents of edit32 as text
 %        str2double(get(hObject,'String')) returns contents of edit32 as a double
 
@@ -2165,3 +2166,5 @@ function edit32_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+

@@ -23,7 +23,7 @@ function varargout = fmri_gui(varargin)
 
 % Edit the above text to modify the response to help fmri_gui
 
-% Last Modified by GUIDE v2.5 27-Mar-2017 18:27:50
+% Last Modified by GUIDE v2.5 04-Apr-2017 13:07:38
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -311,10 +311,11 @@ skip        =   str2num(get(handles.edit33,'String'));
 cutoff  =       str2num(get(handles.edit36,'String')); 
 mask        =   '';
 mask        =   get(handles.edit38,'String');
-m   =   spm_read_vols(spm_vol(mask));
-    if isempty(m) 
-        mask        =   '';
-    end
+try
+    m   =   spm_read_vols(spm_vol(mask));
+catch 
+    mask        =   '';
+end
 adv_dat     =   get(handles.uipanel22,'UserData');
 adv_paradigm=   [];
 adv_cov     =   [];
@@ -339,9 +340,9 @@ k=              str2num(get(handles.edit25,'String'));
 disp_or     =   get(handles.popupmenu7,'Value');
 if disp_or==1
     disp_or     =   4;
-else
-    disp_or     =   disp_or-1;
 end
+disp_or     =   disp_or-1;
+
 
 if ~strcmp(action,'all') && ~preserve
    warndlg(['You are not following the typical workflow, and "Preserve previous processing steps" is NOT checked. ' ...
@@ -701,10 +702,11 @@ skip        =   str2num(get(handles.edit33,'String'));
 cutoff      =   str2num(get(handles.edit36,'String'));
 thr         =   str2num(get(handles.edit37,'String'));
 mask        =   get(handles.edit38,'String');
-m           =   spm_read_vols(spm_vol(mask));
-    if isempty(m) 
+try
+    m           =   spm_read_vols(spm_vol(mask));
+catch
         mask        =   '';
-    end
+end
 adv_dat     =   get(handles.uipanel22,'UserData');
 adv_paradigm    =   [];
 adv_cov         =   [];
@@ -726,11 +728,10 @@ fwe=            get(handles.radiobutton19,'Value');
 p =             str2num(get(handles.edit24,'String'));
 k =             str2num(get(handles.edit25,'String'));
 disp_or     =   get(handles.popupmenu7,'Value');
-if disp_or==1
-    disp_or     =   4;
-else
-    disp_or     =   disp_or-1;
-end
+% if disp_or==1
+%     disp_or     =   4;
+% end
+% disp_or     =   disp_or-1;
 rois_dir    =   get(handles.edit26,'String');
 
 
@@ -961,20 +962,20 @@ try
             switch sp
                 case '1'
                     val=uint8(1);
-                    set(handles.popupmenu5,'Value',val);
+                    set(handles.popupmenu5,'Value',cast(val,'uint8'));
                 case '2' 
                     val=uint8(2);
-                    set(handles.popupmenu5,'Value',val);
+                    set(handles.popupmenu5,'Value',cast(val,'uint8'));
                 otherwise
                     val=uint8(1);
-                    set(handles.popupmenu5,'Value',val);
+                    set(handles.popupmenu5,'Value',cast(val,'uint8'));
                     errordlg('Species loaded is not valid');
             end
         else
             set(handles.edit11,'String',atlas_dir);
         end
         rr=uint8(custom_resol);
-        set(handles.popupmenu6,'Value',rr+1);
+        set(handles.popupmenu6,'Value',cast(rr+1,'uint8'));
         set(handles.text16,'Visible','on');
         set(handles.uipanel14,'Visible','on');
         
@@ -1030,7 +1031,7 @@ try
     set(handles.radiobutton18,'Value',~fwe);    
     set(handles.edit24,'String',num2str(p));    
     set(handles.edit25,'String',num2str(k)); 
-    set(handles.popupmenu7,'Value',disp_or+1);
+    set(handles.popupmenu7,'Value',disp_or);
     set(handles.checkbox8,'Value',cast(cast(prep,'uint8'),'logical'));
     set(handles.checkbox9,'Value',cast(cast(rea,'uint8'),'logical'));
     set(handles.checkbox10,'Value',cast(cast(des,'uint8'),'logical'));
@@ -2520,12 +2521,12 @@ function edit38_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
         % ROIs dir
         in_data = get(hObject,'String');
-        m   =   spm_read_vols(spm_vol(in_data));
-            if ~isempty(m) 
-                set(hObject,'String',in_data); 
-            else
-                set(hObject,'String','');
-            end
+        try
+            m   =   spm_read_vols(spm_vol(in_data));
+            set(hObject,'String',in_data); 
+        catch 
+            set(hObject,'String','');
+        end
 % Hints: get(hObject,'String') returns contents of edit38 as text
 %        str2double(get(hObject,'String')) returns contents of edit38 as a double
 
@@ -2555,11 +2556,12 @@ function pushbutton7_Callback(hObject, eventdata, handles)
         cd(d);
         [sel_file, pathname, filterindex]  =   uigetfile('.nii','Please select your mask:');
         mask   =   fullfile(pathname,sel_file);
-        m   =   spm_read_vols(spm_vol(mask));
-            if ~isempty(m) 
-                set(handles.edit38,'String',mask);
-                set(handles.edit38,'UserData',mask);
-            else
-                set(handles.edit38,'String','Not valid');
-            end
+        try
+            m   =   spm_read_vols(spm_vol(mask));
+            set(handles.edit38,'String',mask);
+            set(handles.edit38,'UserData',mask);
+        catch 
+            set(handles.edit38,'String','Not valid');
+        end
+
        
