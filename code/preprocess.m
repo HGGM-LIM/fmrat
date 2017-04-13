@@ -25,8 +25,8 @@ if ~defs.inifti
         for u=1:size(DataFiles,1)  
             [pathstr,nam,ext]       =   fileparts(fileparts(fileparts(fileparts(DataFiles(u,:)))));
             [pathstr2,study,ext]    =   fileparts(pathstr);
-            if length(study)>8  
-                study   =   ['s' study(1:8)];
+            if length(study)>62  
+                study   =   ['s' study(1:62)];
             elseif isscalar(study(1))
                 study   =   ['s' char(study)];
             end

@@ -116,7 +116,7 @@ end
     b       =   {'sagittal';'coronal';'axial'};
     orCode  =   find(strcmp(a,b));
 
-if exist('defs','var') && isfield('defs','disp_or') && defs.disp_or~=4
+if exist('defs','var') && isfield(defs,'disp_or') && defs.disp_or~=4
     orCode    =   defs.disp_or;
 end
 
@@ -321,7 +321,7 @@ end;    % switch(nSPM)
         b           =   {'sagittal';'coronal';'axial'};
         orCode_f    =   find(strcmp(a,b));
 
-if exist('defs','var') && isfield('defs','disp_or') && defs.disp_or~=4
+if exist('defs','var') && isfield(defs,'disp_or') && defs.disp_or~=4
     orCode_f    =   defs.disp_or;
 end
 %----------------------------------------------------------------------------
@@ -588,14 +588,14 @@ for n = 1:nImgs
             
     end
     
-%     sliceDims   =   [Vsize(i) Vsize(j)];
-%     matr        =   diag([0.01,0.01,0.01,1])\A;
-%     T1          =   T0;
-%     if A(3,3)<0
-%         T1(3,4)     =   -T1(3,4);
-%     end
-%     kk          =   inv(T1*matr);                %****************************************************************************************************   
-%     kk(3,4)=n;
+    sliceDims   =   [Vsize(i) Vsize(j)];
+    matr        =   diag([0.01,0.01,0.01,1])\A;
+    T1          =   T0;
+    if A(3,3)<0
+        T1(3,4)     =   -T1(3,4);
+    end
+    kk          =   inv(T1*matr);                %****************************************************************************************************   
+    kk(3,4)=n;
     sliceDims   =   [Vsize(i) Vsize(j)];
 %     matr        =   diag([0.01,0.01,0.01,1])\A;
 
@@ -607,17 +607,17 @@ for n = 1:nImgs
 %     Dbg         =   spm_slice_vol(Vbg, kk, sliceDims, 1);
 %      Dbg         =   spm_slice_vol(Vbg, kk, sliceDims, 1);
 
-     slice_id            =   zeros(1,3);
-    slice_id(orCode)    =   n;
-%     if defs.RevZ
-%         slice_id(orCode)    =   -n;
-%     end
-    scale               =   [0.01, 0.01, 0.01]./VbgVox;
-    transf              =   [slice_id, [0 0 0], scale, 0,0,0];
-    kk                  =   spm_matrix(transf);
-    if kk(3,3)<0
-        kk(3,4)     =   -kk(3,4);
-    end
+% % %      slice_id            =   zeros(1,3);
+% % %     slice_id(orCode)    =   n;
+% % % %     if defs.RevZ
+% % % %         slice_id(orCode)    =   -n;
+% % % %     end
+% % %     scale               =   [0.01, 0.01, 0.01]./VbgVox;
+% % %     transf              =   [slice_id, [0 0 0], scale, 0,0,0];
+% % %     kk                  =   spm_matrix(transf);
+% % %     if kk(3,3)<0
+% % %         kk(3,4)     =   -kk(3,4);
+% % %     end
     Dbg         =   spm_slice_vol(Vbg,kk , sliceDims, 1);
 
 
@@ -688,31 +688,31 @@ for n = 1:nImgs
         Zspm(off)   =   SPMVol(k).Znorm;        
         Vspm        =   reshape(Vspm, dim);
         Zspm        =   reshape(Zspm, dim);
-% 
-%         matr        =   SPMExtras(k).M;
-%         matr        =   diag([0.01,0.01,0.01,1])\matr;
-%         T2          =   T0;
-%         if matr(3,3)<0
-%             T2(3,4)     =   -T2(3,4); 
-%         else
-%             Pos_mm      =   -TalL(orCode);            
-%         end
-%         kk2         =   inv(T2*matr);
-%         T           =   spm_slice_vol(Vspm, kk2, sliceDims, SPMinterp);  %*******************************************
-%         Zs          =   spm_slice_vol(Zspm, kk2, sliceDims, SPMinterp);  %*******************************************       
-    slice_id            =   zeros(1,3);
-    slice_id(orCode)    =   n;
-%     if defs.RevZ
-%         slice_id(orCode)    =   -n;
-%     end
-    scale               =   [0.01, 0.01, 0.01]./SPMVol(1,1).VOX;
-    transf              =   [slice_id, zeros(1,3), scale, 0,0,0];
-    kk                  =   spm_matrix(transf);
-    if kk(3,3)<0
-        kk(3,4)     =   -kk(3,4);
-    end
-        T           =   spm_slice_vol(Vspm,kk, sliceDims, SPMinterp);
-        Zs          =   spm_slice_vol(Zspm, kk, sliceDims, SPMinterp);
+
+        matr        =   SPMExtras(k).M;
+        matr        =   diag([0.01,0.01,0.01,1])\matr;
+        T2          =   T0;
+        if matr(3,3)<0
+            T2(3,4)     =   -T2(3,4); 
+        else
+            Pos_mm      =   -TalL(orCode);            
+        end
+        kk2         =   inv(T2*matr);
+        T           =   spm_slice_vol(Vspm, kk2, sliceDims, SPMinterp);  %*******************************************
+        Zs          =   spm_slice_vol(Zspm, kk2, sliceDims, SPMinterp);  %*******************************************       
+% % %     slice_id            =   zeros(1,3);
+% % %     slice_id(orCode)    =   n;
+% % % %     if defs.RevZ
+% % % %         slice_id(orCode)    =   -n;
+% % % %     end
+% % %     scale               =   [0.01, 0.01, 0.01]./SPMVol(1,1).VOX;
+% % %     transf              =   [slice_id, zeros(1,3), scale, 0,0,0];
+% % %     kk                  =   spm_matrix(transf);
+% % %     if kk(3,3)<0
+% % %         kk(3,4)     =   -kk(3,4);
+% % %     end
+% % %         T           =   spm_slice_vol(Vspm,kk, sliceDims, SPMinterp);
+% % %         Zs          =   spm_slice_vol(Zspm, kk, sliceDims, SPMinterp);
 
         
         %--------------------------------------------------------

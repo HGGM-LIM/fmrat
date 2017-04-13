@@ -708,9 +708,9 @@ studies         =   fieldnames(data_struct);
                   defaults.realign.estimate.quality     =   1;
                   defaults.realign.estimate.fwhm        =   vox(1);
                   defaults.realign.estimate.rtm         =   1;
-                  P     =   spm_realign(files,defaults.realign.estimate);
+                  spm_realign(files,defaults.realign.estimate);
                   defaults.realign.write.which          =   2;
-                  spm_reslice(P,defaults.realign.write);
+                  spm_reslice(strvcat(files),defaults.realign.write);
                    
                   if defs.skip>0
                       cd(proc);
