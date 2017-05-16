@@ -34,8 +34,8 @@ else
     [path_SPM sts]  =   spm_select(1,'mat','Select your SPM');
     proc            =   fileparts(path_SPM);
     fwe             =   0;
-    p               =   0.01;
-    kl              =   6;
+    p               =   0.05;
+    kl              =   20;
     defs.inifti     =   1;
 end
 
@@ -820,7 +820,7 @@ for n = 1:nImgs
 
         axes('Position',[mCol*(w+fHoriz) top-(mRow+1)*(h+fVert)-(1.5*fVert) w h])
 
-        Dbg1    =   flipdim(rot90(Dbg1,-1),2);
+        Dbg1    =   rot90(Dbg1,1);
         himg    =   image(Dbg1);
         axis image; 
         sc      =   spm('FontScale');    
@@ -844,7 +844,7 @@ for n = 1:nImgs
         figure(hZmap);    
         axes('Position',[mCol*(w+fHoriz) top-(mRow+1)*(h+fVert)-(1.5*fVert) w h])
 
-        Dbg1    =   flipdim(rot90(Dbg1,-1),2);
+        Dbg1    =   rot90(Dbg1,1);
         himg    =   image(Dbg1);
         axis image; 
         sc      =   spm('FontScale');    
@@ -1006,11 +1006,15 @@ else
     [path nam ext]  =   fileparts(path_SPM);
 end
 if nargin~=0
-    print(Fgraph,'-dtiff','-r300',[path filesep 'results_' nam '_' num2str(fwe) '_p_' ...
+    print(Fgraph,'-dtiff','-r500',[path filesep 'results_' nam '_' num2str(fwe) '_p_' ...
         regexprep(num2str(p),'\.','_') '_k_' num2str(kl) '.tif']);
+    saveas(Fgraph,[path filesep 'results_' nam '_' num2str(fwe) '_p_' ...
+        regexprep(num2str(p),'\.','_') '_k_' num2str(kl) '.eps'],'epsc');
 else
-    print(Fgraph,'-dtiff','-r300',[path filesep 'results_' SPMVol(1).title '_' nam '_manual_' num2str(fwe) '_p_' ...
+    print(Fgraph,'-dtiff','-r500',[path filesep 'results_' SPMVol(1).title '_' nam '_manual_' num2str(fwe) '_p_' ...
         regexprep(num2str(p),'\.','_') '_k_' num2str(kl) '.tif']);
+    saveas(Fgraph,[path filesep 'results_' SPMVol(1).title '_' nam '_manual_' num2str(fwe) '_p_' ...
+        regexprep(num2str(p),'\.','_') '_k_' num2str(kl) '.eps'],'epsc');    
 end
 %--------------------------------------------------------------------------
 figure(hZmap);
@@ -1021,10 +1025,14 @@ else
 end
 if nargin~=0
     print(hZmap,'-dtiff','-r500',[path filesep 'Zresults_' nam '_' num2str(fwe) '_p_' ...
-        regexprep(num2str(p),'\.','_') '_k_' num2str(kl) '.tif'])
+        regexprep(num2str(p),'\.','_') '_k_' num2str(kl) '.tif']);
+    saveas(hZmap,[path filesep 'Zresults_' nam '_' num2str(fwe) '_p_' ...
+        regexprep(num2str(p),'\.','_') '_k_' num2str(kl) '.eps'],'epsc'); 
 else
-    print(hZmap,'-dtiff','-r300',[path filesep 'Zresults_' SPMVol(1).title '_' nam '_manual_' num2str(fwe) '_p_' ...
+    print(hZmap,'-dtiff','-r500',[path filesep 'Zresults_' SPMVol(1).title '_' nam '_manual_' num2str(fwe) '_p_' ...
         regexprep(num2str(p),'\.','_') '_k_' num2str(kl) '.tif'])
+    saveas(hZmap,[path filesep 'Zresults_' SPMVol(1).title '_' nam '_manual_' num2str(fwe) '_p_' ...
+        regexprep(num2str(p),'\.','_') '_k_' num2str(kl) '.eps'],'epsc');     
 end
 
 %*************SIGNAL_CHANGE*******************************************************************************************************
