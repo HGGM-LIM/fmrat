@@ -315,7 +315,7 @@ else
     end
     if nargin>=13 && ~isempty(varargin{13}) 
         defs.mask          =   varargin{13};
-        if ~isempty(defs.mask)
+        if ~strcmp(defs.mask,'')
             defs.emask      =  1;
         end
     end

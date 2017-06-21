@@ -42,7 +42,15 @@ global err_path
 
     im          =   dir('*.nii');
     all         =   char(im.name);   
-
+    
+if defs.inifti
+        [path_ref fname ext]    =   fileparts(this.p_ref_w{1});
+        [a b c number]          =   regexp(deblank(fname),['(.*)(\d\d\d\d)']);
+        im_name                 =   fname(c{1}(1,1):c{1}(1,2));            
+        number                  =   str2num(fname(c{1}(2,1):c{1}(2,2)));   
+else 
+    im_name     =   defs.im_name;
+end
     
 if ~defs.preserve    
         if (mode_reg == 1 || mode_reg == 2)
@@ -54,21 +62,21 @@ if ~defs.preserve
                    matches='';
                    switch str
                         case '000'   % Without realignment,coregistration or smoothing
-                            [st fin ex matches]=regexp(deblank(nam),['^' defs.im_name '.*\d\d\d\d$'],'matchcase');
+                            [st fin ex matches]=regexp(deblank(nam),['^' im_name '.*\d\d\d\d$'],'matchcase');
                         case '001'   % Only coregistration
-                            [st fin ex matches]=regexp(deblank(nam),['^w' defs.im_name '.*\d\d\d\d$'],'matchcase');
+                            [st fin ex matches]=regexp(deblank(nam),['^w' im_name '.*\d\d\d\d$'],'matchcase');
                         case '010'   % Only smoothing
-                            [st fin ex matches]=regexp(deblank(nam),['^' defs.im_name '.*\d\d\d\d\_s$'],'matchcase');
+                            [st fin ex matches]=regexp(deblank(nam),['^' im_name '.*\d\d\d\d\_s$'],'matchcase');
                         case '011'   % Both coregistration and smoothing
-                            [st fin ex matches]=regexp(deblank(nam),['^w' defs.im_name '.*\d\d\d\d\_s$'],'matchcase');                       
+                            [st fin ex matches]=regexp(deblank(nam),['^w' im_name '.*\d\d\d\d\_s$'],'matchcase');                       
                         case '100'   % Realignment, but without coregistration or smoothing
-                            [st fin ex matches]=regexp(deblank(nam),['^r' defs.im_name '.*\d\d\d\d$'],'matchcase');
+                            [st fin ex matches]=regexp(deblank(nam),['^r' im_name '.*\d\d\d\d$'],'matchcase');
                         case '101'   % Realignment, and coregistration
-                            [st fin ex matches]=regexp(deblank(nam),['^wr' defs.im_name '.*\d\d\d\d$'],'matchcase');
+                            [st fin ex matches]=regexp(deblank(nam),['^wr' im_name '.*\d\d\d\d$'],'matchcase');
                         case '110'   % Realignment and smoothing
-                            [st fin ex matches]=regexp(deblank(nam),['^r' defs.im_name '.*\d\d\d\d\_s$'],'matchcase');
+                            [st fin ex matches]=regexp(deblank(nam),['^r' im_name '.*\d\d\d\d\_s$'],'matchcase');
                         case '111'   % Realignment, coregistration and smoothing
-                            [st fin ex matches]=regexp(deblank(nam),['^wr' defs.im_name '.*\d\d\d\d\_s$'],'matchcase');                    
+                            [st fin ex matches]=regexp(deblank(nam),['^wr' im_name '.*\d\d\d\d\_s$'],'matchcase');                    
                    end           
                    if ~isempty(matches)
                       files=[files; [source_path filesep deblank(all(i,:))]];
@@ -84,9 +92,9 @@ if ~defs.preserve
                    matches='';
                    switch str
                         case '0'   % Without smooth
-                            [st fin ex matches]=regexp(deblank(nam),['^r' defs.im_name '.*'],'matchcase');
+                            [st fin ex matches]=regexp(deblank(nam),['^r' im_name '.*'],'matchcase');
                         case '1'   % With smooth
-                            [st fin ex matches]=regexp(deblank(nam),['^r' defs.im_name '.*\_s'],'matchcase');
+                            [st fin ex matches]=regexp(deblank(nam),['^r' im_name '.*\_s'],'matchcase');
                    end           
                    if ~isempty(matches)
                       files=[files; {all(i,:)}];
@@ -98,32 +106,32 @@ if ~defs.preserve
         
         
    
-else
+else  
     % sel files in priority order (realignment is a must, coreg and smooth
     %                               are optional)
 
                            
-    [all st]  =   spm_select('FPList',pwd,['^wr' defs.im_name '.*\d\d\d\d\_s.nii$']);
+    [all st]  =   spm_select('FPList',pwd,['^wr' im_name '.*\d\d\d\d\_s.nii$']);
     if isempty(all)
-        [all st]  =   spm_select('FPList',pwd,['^wr' defs.im_name '.*\d\d\d\d.nii$']);    
+        [all st]  =   spm_select('FPList',pwd,['^wr' im_name '.*\d\d\d\d.nii$']);    
     end
     if isempty(all)    
-        [all st]  =   spm_select('FPList',pwd,['^w' defs.im_name '.*\d\d\d\d\_s.nii$']); 
+        [all st]  =   spm_select('FPList',pwd,['^w' im_name '.*\d\d\d\d\_s.nii$']); 
     end        
     if isempty(all)
-        [all st]  =   spm_select('FPList',pwd,['^w' defs.im_name '.*\d\d\d\d.nii$']);
+        [all st]  =   spm_select('FPList',pwd,['^w' im_name '.*\d\d\d\d.nii$']);
     end
     if isempty(all)
-        [all st]  =   spm_select('FPList',pwd,['^r' defs.im_name '.*\d\d\d\d\_s.nii$']); 
+        [all st]  =   spm_select('FPList',pwd,['^r' im_name '.*\d\d\d\d\_s.nii$']); 
     end        
     if isempty(all)
-        [all st]  =   spm_select('FPList',pwd,['^r' defs.im_name '.*\d\d\d\d.nii$']);
+        [all st]  =   spm_select('FPList',pwd,['^r' im_name '.*\d\d\d\d.nii$']);
     end        
     if isempty(all)
-        [all st]  =   spm_select('FPList',pwd,['^' defs.im_name '.*\d\d\d\d\_s.nii$']);
+        [all st]  =   spm_select('FPList',pwd,['^' im_name '.*\d\d\d\d\_s.nii$']);
     end        
     if isempty(all)
-        [all st]  =   spm_select('FPList',pwd,['^' defs.im_name '.*\d\d\d\d.nii$']);
+        [all st]  =   spm_select('FPList',pwd,['^' im_name '.*\d\d\d\d.nii$']);
     end        
     
 %     if isempty(all)
@@ -135,6 +143,8 @@ else
 %      if isempty(all)
 %         [all st]  =   spm_select('FPList',pwd,['^r' defs.im_name '((?!\_s).)*$']);
 %     end   
+
+end
      if isempty(all)
         warning('No files were found.')
      end     
@@ -147,9 +157,40 @@ else
         return;
     end
     
-    
-    
-end
+% else   
+%             
+%             [path_ref fname ext]     =   fileparts(this.p_ref_w{1});
+%             [a b c number]          =   regexp(deblank(file),['(.*)(\d\d\d\d)']);
+%             ref                     =   file(c{1}(1,1):c{1}(1,2));            
+%             number                  =   str2num(file(c{1}(2,1):c{1}(2,2)));            
+%             files={}; %Selection of the later output images
+%                for i=1:size(all,1)
+%                    [route nam ext]=fileparts(all(i,:));
+%                    matches='';
+%                     [a b c matches]     =   regexp(deblank(nam),{['^' ref],'(\d\d\d\d)'});
+%                    if ~isempty(matches{1}) && ~isempty(matches{2})
+%                        no           =   str2num(matches{2}{1});
+%                        if no >= number;
+%                         files       =   [files; {all(i,:)}];
+%                        end
+%                    end
+%                end
+%             all=files;              
+%             
+%      
+% end           
+%      if isempty(all)
+%         warning('No files were found.')
+%      end     
+%     files   =  cellstr(all);
+%     
+%     if (size(all,1)~=defs.NR||isempty(all))
+%         err_file    =   fopen(err_path,'a+');
+%         fprintf(err_file,'Error in %s: Unable to asign files to all elements on the design matrix',source_path);
+%         fclose(err_file);
+%         return;
+%     end    
+
 
   % SKIP===================================================================
         if defs.skip>0
