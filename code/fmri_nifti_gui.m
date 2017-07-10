@@ -163,7 +163,7 @@ if all(struct_ok)
     studies         =   fieldnames(data_struct);  
 end
 
-sel_dir =       get(handles.edit14,'String');
+sel_dir =       deblank(get(handles.edit14,'String'));
 sm =            get(handles.checkbox3,'Value');
 sx='';
 if sm==1
@@ -177,7 +177,7 @@ rx =            0;
 ry =            0;
 rz =            0;
 
-atlas_dir = get(handles.edit18,'String');
+atlas_dir = deblank(get(handles.edit18,'String'));
 if ~isempty(atlas_dir) custom_atlas=1; end
 
 sp = get(handles.popupmenu3,'Value');        
@@ -203,7 +203,7 @@ elseif (~realign && ~design && ~estimate && display)
     action  =   'display';
 end      
     
-rois_dir    =   get(handles.edit27,'String');
+rois_dir    =   deblank(get(handles.edit27,'String'));
 block_ok =      get(handles.edit17,'UserData');
 NR =            str2num(get(handles.edit17,'String'));
 Nrest =         str2num(get(handles.edit15,'String'));
@@ -342,7 +342,7 @@ p           =   ancestor(hObject,'figure');
 data        =   get(p,'UserData');   
 struct_ok   =   ~strcmp(data,'error');
 
-sel_dir     =   get(handles.edit14,'String');    
+sel_dir     =   deblank(get(handles.edit14,'String'));    
 cd(sel_dir);
 sm          =   get(handles.checkbox3,'Value');
 sx          =   '';
@@ -352,7 +352,7 @@ end
 coreg =         get(handles.checkbox4,'Value');
 sp =            0;
 custom_atlas =  get(handles.radiobutton6,'Value');
-atlas_dir =     get(handles.edit18,'String');
+atlas_dir =     deblank(get(handles.edit18,'String'));
 rx =            0;
 ry =            0;
 rz =            0;
@@ -363,7 +363,7 @@ custom_resol =  mod(get(handles.popupmenu4,'Value')+1,2);
         ry   =  str2num(get(handles.edit20,'String'));
         rz   =  str2num(get(handles.edit21,'String'));        
     end
-rois_dir    =   get(handles.edit27,'String');  
+rois_dir    =   deblank(get(handles.edit27,'String'));  
 preserve    =   get(handles.checkbox11,'Value');
 rea         =   get(handles.checkbox10,'Value');
 des         =   get(handles.checkbox6,'Value');
@@ -567,7 +567,7 @@ set(handles.uipanel20,'UserData',[]);
 set(handles.popupmenu5,'Value',1);
 
 % Get config file
-sel_dir=get(handles.edit14,'String');    
+sel_dir=deblank(get(handles.edit14,'String'));    
 if isdir(sel_dir) cd(sel_dir); end
 [file, route]=uigetfile({'*.mat'},'Select a config file');
 
@@ -778,7 +778,7 @@ function togglebutton6_Callback(hObject, eventdata, handles)
 
 p    =  ancestor(hObject,'figure');
 % SELECT DIR button
-d   =   get(handles.edit14,'String');
+d   =   deblank(get(handles.edit14,'String'));
 if isempty(d)
     if isunix 
         %d='/opt/PV5.0/data/nmrsu/nmr/'; 
@@ -828,7 +828,7 @@ function edit14_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Directory edit box
-in_data = get(hObject,'String');
+in_data = deblank(get(hObject,'String'));
 set(handles.uipanel12,'BackgroundColor',[0.867, 0.918, 0.976]);
 if isdir(in_data) 
     [path folder e]=fileparts(in_data);
@@ -1195,7 +1195,7 @@ elseif val==1
        elseif handed && (sp==2)
            set( handles.edit27,'String',[fileparts(install) filesep 'Atlas_Wistar']); 
        else
-           atlas_dir    =   get(handles.edit18,'String');
+           atlas_dir    =   deblank(get(handles.edit18,'String'));
            set( handles.edit27,'String',atlas_dir); 
        end         
     
@@ -1593,7 +1593,7 @@ function edit14_KeyPressFcn(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % for manual directory writing
-dir=get(hObject,'String');
+dir=deblank(get(hObject,'String'));
 set(hObject,'UserData',dir);
 set(hObject,'TooltipString',dir);
 
@@ -1663,7 +1663,7 @@ elseif strcmp(sel,'radiobutton6')
  
 elseif strcmp(sel,'togglebutton7')
         % Browse button
-        d=get(handles.edit14,'String');
+        d=deblank(get(handles.edit14,'String'));
         sel_dir = uigetdir(d,'Please select your atlas directory:');
         if sel_dir ~=0 
             [path folder e]=fileparts(sel_dir);
@@ -1834,7 +1834,7 @@ function pushbutton2_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
         % Browse button
-        d=get(handles.edit14,'String');
+        d=deblank(get(handles.edit14,'String'));
         sel_dir = uigetdir(d,'Please select your ROIs directory:');
         if sel_dir ~=0 
            [route folder e]=fileparts(sel_dir);

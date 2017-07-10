@@ -32,8 +32,9 @@ function job=build_job(paths,onsets, duration,rp,dest,mask, covariable, TR,defs)
 %         xx      =   linspace(0,defs.t_max,ceil(defs.t_max*16/timing.RT));
 %         yy      =   spline(linspace(0,defs.t_max,length(hrf)),hrf,xx);    
         bases           =   struct('user',struct('user_bf',(hrf)','length',defs.t_max,'order',1));
-        timing.fmri_t   =   floor(length(hrf)/(defs.t_max/(TR/1000)));
-        timing.fmri_t0  =   timing.fmri_t/2;        
+        timing.fmri_t   =   length(hrf)/(defs.t_max/(TR/1000));
+        timing.fmri_t0  =   floor(timing.fmri_t/2);        
+        timing.fmri_t   =   timing.fmri_t0*2;
     else 
         bases   =  struct('none',[]);
 %         duration    =   duration-1;        

@@ -37,6 +37,7 @@ else
     p               =   0.05;
     kl              =   20;
     defs.inifti     =   1;
+    defs.disp_or    =   2;
 end
 
 ver         =   lower(spm('ver'));
@@ -452,8 +453,8 @@ Vsize           =   diff(bbox)'+1;
 spacing         =   spacing*direction;
 
 
-maxRow          =   floor(sqrt(nImgs));
-maxCol          =   ceil(nImgs/maxRow);
+% maxRow          =   1;      %floor(sqrt(nImgs));
+% maxCol          =   nImgs+1;  %ceil(nImgs/maxRow);
 %*************************************************************************************************************************************
 
 
@@ -589,36 +590,13 @@ for n = 1:nImgs
     end
     
     sliceDims   =   [Vsize(i) Vsize(j)];
-    matr        =   diag([0.01,0.01,0.01,1])\A;
-    T1          =   T0;
-    if A(3,3)<0
-        T1(3,4)     =   -T1(3,4);
-    end
-    kk          =   inv(T1*matr);                %****************************************************************************************************   
-    kk(3,4)=n;
-    sliceDims   =   [Vsize(i) Vsize(j)];
-%     matr        =   diag([0.01,0.01,0.01,1])\A;
-
-
-%     if defs.RevZ
-%         T0(3,4)     =   -T0(3,4);
-%     end
-%     kk          =   inv(T0*matr);                %****************************************************************************************************   
-%     Dbg         =   spm_slice_vol(Vbg, kk, sliceDims, 1);
-%      Dbg         =   spm_slice_vol(Vbg, kk, sliceDims, 1);
-
-% % %      slice_id            =   zeros(1,3);
-% % %     slice_id(orCode)    =   n;
-% % % %     if defs.RevZ
-% % % %         slice_id(orCode)    =   -n;
-% % % %     end
-% % %     scale               =   [0.01, 0.01, 0.01]./VbgVox;
-% % %     transf              =   [slice_id, [0 0 0], scale, 0,0,0];
-% % %     kk                  =   spm_matrix(transf);
-% % %     if kk(3,3)<0
-% % %         kk(3,4)     =   -kk(3,4);
-% % %     end
-    Dbg         =   spm_slice_vol(Vbg,kk , sliceDims, 1);
+    slice_id            =   zeros(1,3);
+    slice_id(orCode)    =   n;
+    scale               =   [0.01, 0.01, 0.01]./VbgVox;
+    rot                 =   [0 0 0];
+    transf              =   [[0 0 n], rot, scale, 0,0,0];
+    kk                  =   spm_matrix(transf);
+    Dbg                 =   spm_slice_vol(Vbg,kk , sliceDims, 1);
 
 
 
@@ -688,31 +666,15 @@ for n = 1:nImgs
         Zspm(off)   =   SPMVol(k).Znorm;        
         Vspm        =   reshape(Vspm, dim);
         Zspm        =   reshape(Zspm, dim);
-
-        matr        =   SPMExtras(k).M;
-        matr        =   diag([0.01,0.01,0.01,1])\matr;
-        T2          =   T0;
-        if matr(3,3)<0
-            T2(3,4)     =   -T2(3,4); 
-        else
-            Pos_mm      =   -TalL(orCode);            
-        end
-        kk2         =   inv(T2*matr);
-        T           =   spm_slice_vol(Vspm, kk2, sliceDims, SPMinterp);  %*******************************************
-        Zs          =   spm_slice_vol(Zspm, kk2, sliceDims, SPMinterp);  %*******************************************       
-% % %     slice_id            =   zeros(1,3);
-% % %     slice_id(orCode)    =   n;
-% % % %     if defs.RevZ
-% % % %         slice_id(orCode)    =   -n;
-% % % %     end
-% % %     scale               =   [0.01, 0.01, 0.01]./SPMVol(1,1).VOX;
-% % %     transf              =   [slice_id, zeros(1,3), scale, 0,0,0];
-% % %     kk                  =   spm_matrix(transf);
-% % %     if kk(3,3)<0
-% % %         kk(3,4)     =   -kk(3,4);
-% % %     end
-% % %         T           =   spm_slice_vol(Vspm,kk, sliceDims, SPMinterp);
-% % %         Zs          =   spm_slice_vol(Zspm, kk, sliceDims, SPMinterp);
+ 
+        slice_id            =   zeros(1,3);
+        slice_id(orCode)    =   n;
+        scale               =   [0.01, 0.01, 0.01]./SPMVol(1,1).VOX;
+        rot                 =   [0 0 0];
+        transf              =   [[0 0 n], rot, scale, 0,0,0];
+        kk                  =   spm_matrix(transf);
+        T                   =   spm_slice_vol(Vspm,kk, sliceDims, SPMinterp);
+        Zs                  =   spm_slice_vol(Zspm, kk, sliceDims, SPMinterp);
 
         
         %--------------------------------------------------------
@@ -820,7 +782,7 @@ for n = 1:nImgs
 
         axes('Position',[mCol*(w+fHoriz) top-(mRow+1)*(h+fVert)-(1.5*fVert) w h])
 
-        Dbg1    =   rot90(Dbg1,1);
+        Dbg1    =   flip(rot90(Dbg1,-1),2);
         himg    =   image(Dbg1);
         axis image; 
         sc      =   spm('FontScale');    
@@ -844,7 +806,7 @@ for n = 1:nImgs
         figure(hZmap);    
         axes('Position',[mCol*(w+fHoriz) top-(mRow+1)*(h+fVert)-(1.5*fVert) w h])
 
-        Dbg1    =   rot90(Dbg1,1);
+        Dbg1    =   flip(rot90(Dbg1,-1),2);
         himg    =   image(Dbg1);
         axis image; 
         sc      =   spm('FontScale');    
@@ -1006,15 +968,15 @@ else
     [path nam ext]  =   fileparts(path_SPM);
 end
 if nargin~=0
-    print(Fgraph,'-dtiff','-r500',[path filesep 'results_' nam '_' num2str(fwe) '_p_' ...
+    print(Fgraph,'-dtiff','-r300',[path filesep 'results_' nam '_' num2str(fwe) '_p_' ...
         regexprep(num2str(p),'\.','_') '_k_' num2str(kl) '.tif']);
-    saveas(Fgraph,[path filesep 'results_' nam '_' num2str(fwe) '_p_' ...
-        regexprep(num2str(p),'\.','_') '_k_' num2str(kl) '.eps'],'epsc');
+%     saveas(Fgraph,[path filesep 'results_' nam '_' num2str(fwe) '_p_' ...
+%         regexprep(num2str(p),'\.','_') '_k_' num2str(kl) '.eps'],'epsc');    
 else
-    print(Fgraph,'-dtiff','-r500',[path filesep 'results_' SPMVol(1).title '_' nam '_manual_' num2str(fwe) '_p_' ...
+    print(Fgraph,'-dtiff','-r300',[path filesep 'results_' SPMVol(1).title '_' nam '_manual_' num2str(fwe) '_p_' ...
         regexprep(num2str(p),'\.','_') '_k_' num2str(kl) '.tif']);
-    saveas(Fgraph,[path filesep 'results_' SPMVol(1).title '_' nam '_manual_' num2str(fwe) '_p_' ...
-        regexprep(num2str(p),'\.','_') '_k_' num2str(kl) '.eps'],'epsc');    
+%     saveas(Fgraph,[path filesep 'results_' SPMVol(1).title '_' nam '_manual_' num2str(fwe) '_p_' ...
+%         regexprep(num2str(p),'\.','_') '_k_' num2str(kl) '.eps'],'epsc');     
 end
 %--------------------------------------------------------------------------
 figure(hZmap);
@@ -1027,12 +989,12 @@ if nargin~=0
     print(hZmap,'-dtiff','-r500',[path filesep 'Zresults_' nam '_' num2str(fwe) '_p_' ...
         regexprep(num2str(p),'\.','_') '_k_' num2str(kl) '.tif']);
     saveas(hZmap,[path filesep 'Zresults_' nam '_' num2str(fwe) '_p_' ...
-        regexprep(num2str(p),'\.','_') '_k_' num2str(kl) '.eps'],'epsc'); 
-else
-    print(hZmap,'-dtiff','-r500',[path filesep 'Zresults_' SPMVol(1).title '_' nam '_manual_' num2str(fwe) '_p_' ...
-        regexprep(num2str(p),'\.','_') '_k_' num2str(kl) '.tif'])
-    saveas(hZmap,[path filesep 'Zresults_' SPMVol(1).title '_' nam '_manual_' num2str(fwe) '_p_' ...
         regexprep(num2str(p),'\.','_') '_k_' num2str(kl) '.eps'],'epsc');     
+else
+    print(hZmap,'-dtiff','-r300',[path filesep 'Zresults_' SPMVol(1).title '_' nam '_manual_' num2str(fwe) '_p_' ...
+        regexprep(num2str(p),'\.','_') '_k_' num2str(kl) '.tif']);
+    saveas(hZmap,[path filesep 'Zresults_' SPMVol(1).title '_' nam '_manual_' num2str(fwe) '_p_' ...
+        regexprep(num2str(p),'\.','_') '_k_' num2str(kl) '.eps'],'epsc');    
 end
 
 %*************SIGNAL_CHANGE*******************************************************************************************************

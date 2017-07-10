@@ -44,7 +44,7 @@ global err_path
     all         =   char(im.name);   
     
 if defs.inifti
-        [path_ref fname ext]    =   fileparts(this.p_ref_w{1});
+        [path_ref fname ext]    =   fileparts(this.p_func{1});
         [a b c number]          =   regexp(deblank(fname),['(.*)(\d\d\d\d)']);
         im_name                 =   fname(c{1}(1,1):c{1}(1,2));            
         number                  =   str2num(fname(c{1}(2,1):c{1}(2,2)));   

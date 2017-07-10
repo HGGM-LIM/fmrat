@@ -191,7 +191,7 @@ function edit1_Callback(hObject, eventdata, handles)
 % hObject    handle to edit1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-contents = get(hObject,'String');
+contents = deblank(get(hObject,'String'));
 set(handles.uipanel4,'BackgroundColor',[0.867, 0.918, 0.976]);
 if isdir(contents) 
     set(hObject,'String',contents); 
@@ -221,7 +221,7 @@ function togglebutton2_Callback(hObject, eventdata, handles)
 % hObject    handle to togglebutton2 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-d   =   get(handles.edit14,'String');
+d   =   deblank(get(handles.edit14,'String'));
 if isempty(d)
     if isunix 
         %d='/opt/PV5.0/data/nmrsu/nmr/'; 
@@ -257,7 +257,7 @@ function togglebutton3_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % START BUTTON
-sel_dir =       get(handles.edit1,'String');
+sel_dir =       deblank(get(handles.edit1,'String'));
 sm =            get(handles.checkbox2,'Value');
 sx='';
 if sm==1
@@ -275,7 +275,7 @@ rz =            0;
         if custom_atlas==0 
             sp = get(handles.popupmenu5,'Value');
         else
-            atlas_dir = get(handles.edit11,'String');
+            atlas_dir = deblank(get(handles.edit11,'String'));
         end
     end
 custom_resol =  mod(get(handles.popupmenu6,'Value')+1,2);
@@ -301,7 +301,7 @@ elseif (~preprocess && ~realign && ~design && estimate && display)
 elseif (~preprocess && ~realign && ~design && ~estimate && display)
     action  =   'display';
 end    
-rois_dir    =   get(handles.edit26,'String');    
+rois_dir    =   deblank(get(handles.edit26,'String'));    
 preserve    =   get(handles.checkbox15,'Value');    
 block_ok =      get(handles.edit31,'UserData');
 NR =            str2num(get(handles.edit31,'String'));
@@ -310,7 +310,7 @@ Nstim =         str2num(get(handles.edit4,'String'));
 skip        =   str2num(get(handles.edit33,'String')); 
 cutoff  =       str2num(get(handles.edit36,'String')); 
 mask        =   '';
-mask        =   get(handles.edit38,'String');
+mask        =   deblank(get(handles.edit38,'String'));
 try
     m   =   spm_read_vols(spm_vol(mask));
 catch 
@@ -332,8 +332,8 @@ if ~isempty(adv_dat) && isfield(adv_dat,'user_hrf')
     t_max           =   adv_dat.t_max;    
 end
 thr         =   str2num(get(handles.edit37,'String'));   
-anat_seq =      get(handles.edit29,'String');
-func_seq =      get(handles.edit30,'String');
+anat_seq =      deblank(get(handles.edit29,'String'));
+func_seq =      deblank(get(handles.edit30,'String'));
 fwe=            get(handles.radiobutton19,'Value');
 p=              str2num(get(handles.edit24,'String'));
 k=              str2num(get(handles.edit25,'String'));
@@ -450,7 +450,7 @@ function edit1_KeyPressFcn(hObject, eventdata, handles)
 % hObject    handle to edit1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-dir=get(hObject,'String');
+dir=deblank(get(hObject,'String'));
 set(hObject,'UserData',dir);
 set(hObject,'TooltipString',dir);
  
@@ -660,7 +660,7 @@ function togglebutton4_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % SAVE CONFIG PRINT
-sel_dir     =   get(handles.edit1,'String');
+sel_dir     =   deblank(get(handles.edit1,'String'));
 preserve    =   get(handles.checkbox15,'Value');
 sm =            get(handles.checkbox2,'Value');
 sx='';
@@ -679,7 +679,7 @@ rz =            0;
         if custom_atlas==0 
             sp = get(handles.popupmenu5,'Value');
         else
-            atlas_dir = get(handles.edit11,'String');
+            atlas_dir = deblank(get(handles.edit11,'String'));
         end
     end
 custom_resol =  mod(get(handles.popupmenu6,'Value')+1,2);
@@ -701,7 +701,7 @@ Nstim =         str2num(get(handles.edit4,'String'));
 skip        =   str2num(get(handles.edit33,'String'));
 cutoff      =   str2num(get(handles.edit36,'String'));
 thr         =   str2num(get(handles.edit37,'String'));
-mask        =   get(handles.edit38,'String');
+mask        =   deblank(get(handles.edit38,'String'));
 try
     m           =   spm_read_vols(spm_vol(mask));
 catch
@@ -722,8 +722,8 @@ if ~isempty(adv_dat) && isfield(adv_dat,'user_hrf')
     user_hrf        =   adv_dat.user_hrf;
     t_max           =   adv_dat.t_max;
 end
-anat_seq =      get(handles.edit29,'String');
-func_seq =      get(handles.edit30,'String');
+anat_seq =      deblank(get(handles.edit29,'String'));
+func_seq =      deblank(get(handles.edit30,'String'));
 fwe=            get(handles.radiobutton19,'Value');
 p =             str2num(get(handles.edit24,'String'));
 k =             str2num(get(handles.edit25,'String'));
@@ -732,7 +732,7 @@ disp_or     =   get(handles.popupmenu7,'Value');
 %     disp_or     =   4;
 % end
 % disp_or     =   disp_or-1;
-rois_dir    =   get(handles.edit26,'String');
+rois_dir    =   deblank(get(handles.edit26,'String'));
 
 
 ok= ['isdir(sel_dir) && ((block_ok==1) || ~isempty(adv_paradigm)) && ' ...
@@ -921,7 +921,7 @@ set(handles.edit37,'String','0.3');
 set(handles.popupmenu7,'Value',1);
 
 % Get config file
-sel_dir =       get(handles.edit1,'String');
+sel_dir =       deblank(get(handles.edit1,'String'));
 if ~isempty(sel_dir) cd(sel_dir); end
 [file, route]=uigetfile({'*.mat'},'Select a config file');
 
@@ -950,8 +950,8 @@ try
     end      
     set(handles.uipanel22,'UserData',adv_dat);
     set(handles.edit31,'UserData',cast(cast(block_ok,'uint8'),'logical'));
-    set(handles.edit29,'String',num2str(anat_seq));
-    set(handles.edit30,'String',num2str(func_seq));     
+    set(handles.edit29,'String',anat_seq);
+    set(handles.edit30,'String',func_seq);     
     set(handles.edit26,'String',deblank(rois_dir));      
     set(handles.checkbox3,'Value',cast(cast(coreg,'uint8'),'logical'));
     set(handles.checkbox15,'Value',cast(cast(preserve,'uint8'),'logical'));
@@ -1173,7 +1173,7 @@ elseif val==1
        elseif handed && (sp==2)
            set( handles.edit26,'String',[fileparts(install) filesep 'Atlas_Wistar']); 
        else
-           atlas_dir    =   get(handles.edit11,'String');
+           atlas_dir    =   deblank(get(handles.edit11,'String'));
            set( handles.edit26,'String',atlas_dir); 
        end       
        
@@ -1187,7 +1187,7 @@ function edit8_Callback(hObject, eventdata, handles)
 % hObject    handle to edit8 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-contents = get(hObject,'String');
+contents = deblank(get(hObject,'String'));
 set(handles.uipanel5,'BackgroundColor',[0.906,0.906,0.906]);
 if isdir(contents) 
     set(hObject,'String',contents); 
@@ -1309,7 +1309,7 @@ function edit11_Callback(hObject, eventdata, handles)
 % hObject    handle to edit11 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-contents = get(hObject,'String');
+contents = deblank(get(hObject,'String'));
 set(handles.uipanel4,'BackgroundColor',[0.867, 0.918, 0.976]);
 if isdir(contents) 
     set(hObject,'String',contents); 
@@ -1410,7 +1410,7 @@ elseif strcmp(sel,'radiobutton10')
  
 elseif strcmp(sel,'togglebutton7')
         % Browse button
-        d=get(handles.edit11,'String');
+        d=deblank(get(handles.edit11,'String'));
         sel_dir = uigetdir(d,'Please select your atlas directory:');
         if sel_dir ~=0 
             [route folder e]=fileparts(sel_dir);
@@ -1882,7 +1882,7 @@ function popupmenu5_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
     install     =   mfilename('fullpath');
-    roi_dir     =   get(handles.edit26,'String');
+    roi_dir     =   deblank(get(handles.edit26,'String'));
     if (get(handles.popupmenu5,'Value')==1)
        set( handles.edit26,'String',[fileparts(install) filesep 'Atlas_SD']);
     elseif (get(handles.popupmenu5,'Value')==2)
@@ -2081,7 +2081,7 @@ function pushbutton3_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
         % Browse button
-        d=get(handles.edit1,'String');
+        d=deblank(get(handles.edit1,'String'));
         sel_dir = uigetdir(d,'Please select your ROIs directory:');
         if sel_dir ~=0 
             [route folder e]=fileparts(sel_dir);
@@ -2520,7 +2520,7 @@ function edit38_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
         % ROIs dir
-        in_data = get(hObject,'String');
+        in_data = deblank(get(hObject,'String'));
         try
             m   =   spm_read_vols(spm_vol(in_data));
             set(hObject,'String',in_data); 
@@ -2552,7 +2552,7 @@ function pushbutton7_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
         % Browse button
-        d           =   get(handles.edit1,'String');
+        d           =   deblank(get(handles.edit1,'String'));
         cd(d);
         [sel_file, pathname, filterindex]  =   uigetfile('.nii','Please select your mask:');
         mask   =   fullfile(pathname,sel_file);
